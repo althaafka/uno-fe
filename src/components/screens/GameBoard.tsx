@@ -10,7 +10,7 @@ const MOCK_GAME_DATA = {
         id: "e94176b0-d3b0-4143-b903-4dcc482c9134",
         name: "You",
         isHuman: true,
-        cardCount: 7,
+        cardCount: 12,
         cards: [
           { color: 2, value: 5 },
           { color: 0, value: 6 },
@@ -32,7 +32,7 @@ const MOCK_GAME_DATA = {
         id: "76fe872b-f9c8-4102-b977-04d3a80f6462",
         name: "Player 3",
         isHuman: false,
-        cardCount: 7,
+        cardCount: 12,
         cards: [],
       },
       {
@@ -93,16 +93,30 @@ export const GameBoard = () => {
 
     {/* Player Left*/}
     <div className="absolute left-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
-    <CardStack
-      cardCount={player2.cardCount}
-      overlapOffset={24}
-      maxCardsPerRow={15}
-      playerPosition='left'
-    />
+      <CardStack
+        cardCount={player2.cardCount}
+        overlapOffset={24}
+        maxCardsPerRow={15}
+        playerPosition='left'
+      />
       <PlayerAvatar
         name={player2.name}
         cardCount={player2.cardCount}
         isCurrentPlayer={gameState.currentPlayerId === player2.id}
+      />
+    </div>
+
+    {/*Human Player*/}
+    <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex  items-start gap-6">
+      <CardStack
+        cardCount={humanPlayer.cardCount}
+        maxCardsPerRow={15}
+        playerPosition='bottom'
+      />
+      <PlayerAvatar
+        name={humanPlayer.name}
+        cardCount={humanPlayer.cardCount}
+        isCurrentPlayer={gameState.currentPlayerId === humanPlayer.id}
       />
     </div>
 
