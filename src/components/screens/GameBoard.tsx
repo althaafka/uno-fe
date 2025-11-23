@@ -1,4 +1,5 @@
 import { Card } from '../game/Card';
+import { CardStack } from '../game/CardStack';
 import { useState} from 'react';
 import { PlayerAvatar } from '../game/PlayerAvatar';
 const MOCK_GAME_DATA = {
@@ -31,7 +32,7 @@ const MOCK_GAME_DATA = {
         id: "76fe872b-f9c8-4102-b977-04d3a80f6462",
         name: "Player 3",
         isHuman: false,
-        cardCount: 52,
+        cardCount: 7,
         cards: [],
       },
       {
@@ -51,18 +52,60 @@ const MOCK_GAME_DATA = {
 };
 
 export const GameBoard = () => {
-    const [gameState, setGameState] = useState<any>(null);
-    
-  return <div className="w-screen h-screen bg-uno-purple overflow-hidden relative">
-    {/* <Card card={{color: 0, value: 0}} isFaceDown /> */}
-    {/* <Card card={{color: 0, value: 9}} /> */}
-    <Card card={{color: 4, value: 14}} />
-    <Card card={{color: 4, value: 14}} rotate={15} />
-<Card card={{color: 4, value: 14}} rotate={-90} />
-<Card card={{color: 4, value: 14}} rotate={45} scale={1.2} />
-    <PlayerAvatar name="Player 1" cardCount={7}/>
-    <PlayerAvatar name="Player 1" cardCount={32} isCurrentPlayer/>
+  const [gameState, setGameState] = useState<any>(MOCK_GAME_DATA.gameState);
+
+  const humanPlayer = gameState.players?.find((p: any) => p.isHuman);
+  const otherPlayers = gameState.players?.filter((p: any) => !p.isHuman);
+  const player3 = otherPlayers[1];
+  const player4 = otherPlayers[2];
+  const player2 = otherPlayers[0];
+
+  return (
+  <div className="w-screen h-screen bg-uno-purple overflow-hidden relative">
+    {/* Player Top*/}
+    <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-start gap-6">
+      <PlayerAvatar
+        name={player3.name}
+        cardCount={player3.cardCount}
+        isCurrentPlayer={gameState.currentPlayerId === player3.id}
+      />
+      <CardStack
+        cardCount={player3.cardCount}
+        maxCardsPerRow={15}
+        playerPosition='top'
+      />
+    </div>
+
+    {/* Player Right*/}
+    <div className="absolute right-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
+      <PlayerAvatar
+        name={player4.name}
+        cardCount={player4.cardCount}
+        isCurrentPlayer={gameState.currentPlayerId === player4.id}
+      />
+      <CardStack
+        cardCount={player4.cardCount}
+        overlapOffset={24}
+        maxCardsPerRow={15}
+        playerPosition='right'
+      />
+    </div>
+
+    {/* Player Left*/}
+    <div className="absolute left-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
+    <CardStack
+      cardCount={player2.cardCount}
+      overlapOffset={24}
+      maxCardsPerRow={15}
+      playerPosition='left'
+    />
+      <PlayerAvatar
+        name={player2.name}
+        cardCount={player2.cardCount}
+        isCurrentPlayer={gameState.currentPlayerId === player2.id}
+      />
+    </div>
 
 
-  </div>
+  </div>)
 }

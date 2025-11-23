@@ -2,7 +2,6 @@ interface PlayerAvatarProps {
   name: string;
   cardCount: number;
   isCurrentPlayer?: boolean;
-  position?: 'top' | 'right' | 'bottom' | 'left';
 }
 
 export const PlayerAvatar = ({
@@ -28,7 +27,7 @@ export const PlayerAvatar = ({
         </div>
       </div>
 
-      <div className="text-white font-semibold text-lg">
+      <div className="text-white font-semibold text-lg text-center">
         {name}
       </div>
     </div>

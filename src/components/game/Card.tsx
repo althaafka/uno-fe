@@ -63,7 +63,7 @@ export const Card = ({
       >
         {isFaceDown ? (
           <div className="text-center">
-            <div className="text-2xl font-black text-white opacity-30">ONO</div>
+            <div className="text-2xl font-black text-white opacity-30">UNO</div>
           </div>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center relative">
