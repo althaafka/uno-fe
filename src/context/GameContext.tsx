@@ -1,6 +1,13 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import type { GameData, GameState } from '../types/game';
+import type { Card, GameData, GameState } from '../types/game';
 import { gameApi } from '../services/api/gameApi';
+
+const isCardPlayable = (card: Card, topCard: Card, currentColor: number): boolean => {
+  if (card.color === 4) return true;
+  if (card.color === currentColor) return true;
+  if (card.value === topCard.value) return true;
+  return false;
+};
 
 interface GameContextValue {
   gameId: string | null;
@@ -8,6 +15,7 @@ interface GameContextValue {
   isLoading: boolean;
   error: string | null;
   startGame: () => Promise<void>;
+  playCard: (cardId: string) => Promise<void>;
   resetGame: () => void;
 }
 
@@ -42,6 +50,43 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     }
   }, []);
 
+  const playCard = useCallback(async (cardId: string) => {
+    if (!gameId || !gameState) {
+      throw new Error('No active game');
+    }
+
+    const humanPlayer = gameState.players.find(p => p.isHuman);
+    if (!humanPlayer) {
+      throw new Error('No human player found');
+    }
+
+    const cardToPlay = humanPlayer.cards.find(c => c.id === cardId);
+    if (!cardToPlay) {
+      return;
+    }
+
+    if (!isCardPlayable(cardToPlay, gameState.topCard, gameState.currentColor)) {
+      console.log("Card not playable", gameState.topCard, cardToPlay);
+      return;
+    }
+
+    setError(null);
+
+    try {
+      const response = await gameApi.playCard(gameId, humanPlayer.id, cardId);
+      if (response.success) {
+        setGameState(response.gameState);
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to play card';
+      setError(errorMessage);
+      console.error('Error playing card:', err);
+      throw err;
+    }
+  }, [gameId, gameState]);
+
   const resetGame = useCallback(() => {
     setGameId(null);
     setGameState(null);
@@ -54,6 +99,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     isLoading,
     error,
     startGame,
+    playCard,
     resetGame,
   };
 

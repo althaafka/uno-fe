@@ -5,7 +5,15 @@ import { GameInfo } from '../game/GameInfo';
 import { useGame } from '../../context/GameContext';
 
 export const GameBoard = () => {
-  const { gameState, isLoading, error } = useGame();
+  const { gameState, isLoading, error, playCard } = useGame();
+
+  const handleCardClick = async (cardId: string) => {
+    try {
+      await playCard(cardId);
+    } catch (err) {
+      console.error('Failed to play card:', err);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -90,6 +98,7 @@ export const GameBoard = () => {
         cards={humanPlayer.cards}
         maxCardsPerRow={15}
         playerPosition='bottom'
+        onCardClick={handleCardClick}
       />
       <PlayerAvatar
         name={humanPlayer.name}
@@ -106,12 +115,12 @@ export const GameBoard = () => {
           className="relative cursor-pointer"
         >
           <div className="absolute top-1 left-1">
-            <Card card={{ color: 0, value: 0 }} isFaceDown scale={1.2}/>
+            <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.2}/>
           </div>
           <div className="absolute top-2 left-2">
-            <Card card={{ color: 0, value: 0 }} isFaceDown scale={1.2}/>
+            <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.2}/>
           </div>
-            <Card card={{ color: 0, value: 0 }} isFaceDown scale={1.2}/>
+            <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.2}/>
           </div>
       </div>
 

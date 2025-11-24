@@ -9,6 +9,7 @@ interface CardStackProps {
   cardScale?: number;
   overlapOffset?: number;
   playerPosition: 'top' | 'bottom' | 'left' | 'right';
+  onCardClick?: (cardId: string) => void;
 }
 
 export const CardStack = ({
@@ -18,6 +19,7 @@ export const CardStack = ({
   cardScale = 1,
   overlapOffset = 42,
   playerPosition,
+  onCardClick,
 }: CardStackProps) => {
   const isFaceDown = !cards || cards.length === 0;
   // Orientation based on player position
@@ -81,7 +83,7 @@ export const CardStack = ({
                     }}
                   >
                     <Card
-                      card={cardData ?? { color: 0, value: 0 }}
+                      card={cardData ?? { id: '', color: 0, value: 0 }}
                       isFaceDown={isFaceDown}
                       scale={cardScale}
                       rotate={cardRotation}
@@ -128,9 +130,10 @@ export const CardStack = ({
                     zIndex: 50,
                     transition: { duration: 0.2 }
                   } : undefined}
+                  onClick={() => cardData && onCardClick?.(cardData.id)}
                 >
                   <Card
-                    card={cardData ?? { color: 0, value: 0 }}
+                    card={cardData ?? { id: '', color: 0, value: 0 }}
                     isFaceDown={isFaceDown}
                     scale={cardScale}
                     rotate={cardRotation}
