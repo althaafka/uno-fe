@@ -1,7 +1,9 @@
 import { Card } from './Card';
+import type { Card as CardType } from '../../types/game';
 
 interface CardStackProps {
   cardCount: number;
+  cards?: CardType[];
   maxCardsPerRow?: number;
   cardScale?: number;
   overlapOffset?: number;
@@ -10,11 +12,13 @@ interface CardStackProps {
 
 export const CardStack = ({
   cardCount,
+  cards,
   maxCardsPerRow = 15,
   cardScale = 1,
   overlapOffset = 42,
   playerPosition,
 }: CardStackProps) => {
+  const isFaceDown = !cards || cards.length === 0;
   // Orientation based on player position
   const isVertical = playerPosition === 'left' || playerPosition === 'right';
 
@@ -64,6 +68,8 @@ export const CardStack = ({
               {Array.from({ length: cardsInCol }).map((_, cardIndex) => {
                 // Calculate position based on reverse setting
                 const positionIndex = shouldReverse ? (cardsInCol - 1 - cardIndex) : cardIndex;
+                const globalCardIndex = colIndex * maxCardsPerRow + cardIndex;
+                const cardData = cards?.[globalCardIndex];
 
                 return (
                   <div
@@ -74,8 +80,8 @@ export const CardStack = ({
                     }}
                   >
                     <Card
-                      card={{ color: 0, value: 0 }}
-                      isFaceDown
+                      card={cardData ?? { color: 0, value: 0 }}
+                      isFaceDown={isFaceDown}
                       scale={cardScale}
                       rotate={cardRotation}
                     />
@@ -105,6 +111,8 @@ export const CardStack = ({
           <div key={rowIndex} className="relative h-[20px]">
             {Array.from({ length: cardsInRow }).map((_, cardIndex) => {
               const positionIndex = shouldReverse ? (cardsInRow - 1 - cardIndex) : cardIndex;
+              const globalCardIndex = rowIndex * maxCardsPerRow + cardIndex;
+              const cardData = cards?.[globalCardIndex];
 
               return (
                 <div
@@ -115,8 +123,8 @@ export const CardStack = ({
                   }}
                 >
                   <Card
-                    card={{ color: 0, value: 0 }}
-                    isFaceDown
+                    card={cardData ?? { color: 0, value: 0 }}
+                    isFaceDown={isFaceDown}
                     scale={cardScale}
                     rotate={cardRotation}
                   />
