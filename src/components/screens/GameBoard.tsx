@@ -2,6 +2,7 @@ import { Card } from '../game/Card';
 import { CardStack } from '../game/CardStack';
 import { useState} from 'react';
 import { PlayerAvatar } from '../game/PlayerAvatar';
+import { GameInfo } from '../game/GameInfo';
 const MOCK_GAME_DATA = {
   gameId: "b9089e75-be0f-4803-bbe9-968a22a3543e",
   gameState: {
@@ -117,6 +118,36 @@ export const GameBoard = () => {
         name={humanPlayer.name}
         cardCount={humanPlayer.cardCount}
         isCurrentPlayer={gameState.currentPlayerId === humanPlayer.id}
+      />
+    </div>
+
+    {/*Center Area*/}
+    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-10">
+      {/*Deck*/}
+      <div className="flex flex-col items-center gap-2">
+        <div
+          className="relative cursor-pointer"
+        >
+          <div className="absolute top-1 left-1">
+            <Card card={{ color: 0, value: 0 }} isFaceDown scale={1.2}/>
+          </div>
+          <div className="absolute top-2 left-2">
+            <Card card={{ color: 0, value: 0 }} isFaceDown scale={1.2}/>
+          </div>
+            <Card card={{ color: 0, value: 0 }} isFaceDown scale={1.2}/>
+          </div>
+      </div>
+
+      {/* Discard pile */}
+      <div>
+        <Card card={gameState.topCard} scale={1.2}/>
+      </div>
+
+      {/*Game Info*/}
+      <GameInfo
+        direction={gameState.direction}
+        currentColor={gameState.currentColor}
+        onUnoClick={() => {}}
       />
     </div>
 

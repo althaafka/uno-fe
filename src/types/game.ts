@@ -6,3 +6,5 @@ export interface Card {
   color: CardColor;
   value: CardValue;
 }
+
+export type GameDirection = 0 | 1; // 0=clockwise, 1=counter-clockwise
