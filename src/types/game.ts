@@ -8,3 +8,25 @@ export interface Card {
 }
 
 export type GameDirection = 0 | 1; // 0=clockwise, 1=counter-clockwise
+
+export interface Player {
+  id: string;
+  name: string;
+  isHuman: boolean;
+  cardCount: number;
+  cards: Card[];
+}
+
+export interface GameState {
+  players: Player[];
+  topCard: Card;
+  currentColor: CardColor;
+  currentPlayerId: string;
+  direction: GameDirection;
+  deckCardCount: number;
+}
+
+export interface GameData {
+  gameId: string;
+  gameState: GameState;
+}

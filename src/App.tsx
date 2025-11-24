@@ -1,10 +1,30 @@
+import { useState } from 'react'
 import './App.css'
 import { GameBoard } from './components/screens/GameBoard'
+import { LandingScreen } from './components/screens/LandingScreen'
+import { GameProvider } from './context/GameContext'
+
+type Screen = 'landing' | 'game'
+
+function AppContent() {
+  const [currentScreen, setCurrentScreen] = useState<Screen>('landing')
+
+  const handleGameStart = () => {
+    setCurrentScreen('game')
+  }
+
+  if (currentScreen === 'landing') {
+    return <LandingScreen onGameStart={handleGameStart} />
+  }
+
+  return <GameBoard />
+}
 
 function App() {
-
   return (
-    <GameBoard></GameBoard>
+    <GameProvider>
+      <AppContent />
+    </GameProvider>
   )
 }
 
