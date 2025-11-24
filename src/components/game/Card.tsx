@@ -45,7 +45,7 @@ export const Card = ({
   return (
     <div
       className={`
-        w-16 h-24 relative rounded-lg shadow-lg cursor-${isClickable && !isDisabled ? 'pointer' : 'default'}
+        w-16 h-24 relative rounded-lg shadow-lg cursor-pointer select-none
         transition-all duration-200
         ${isSelected ? 'ring-4 ring-white ring-opacity-80' : ''}
         ${isDisabled ? 'opacity-50' : 'opacity-100'}

@@ -1,5 +1,6 @@
 import { Card } from './Card';
 import type { Card as CardType } from '../../types/game';
+import { motion } from 'framer-motion';
 
 interface CardStackProps {
   cardCount: number;
@@ -43,8 +44,8 @@ export const CardStack = ({
     remainingCards -= cardsInThisRow;
   }
 
-  const cardWidth = 64 * cardScale; // w-16 = 64px
-  const cardHeight = 96 * cardScale; // h-24 = 96px
+  const cardWidth = 64 * cardScale;
+  const cardHeight = 96 * cardScale;
 
   if (isVertical) {
     // Vertical stack
@@ -115,12 +116,18 @@ export const CardStack = ({
               const cardData = cards?.[globalCardIndex];
 
               return (
-                <div
+                <motion.div
                   key={cardIndex}
                   className="absolute"
                   style={{
                     left: `${centerOffset + positionIndex * overlapOffset}px`,
                   }}
+                  whileHover={!isFaceDown ? {
+                    y: -20,
+                    scale: 1.05,
+                    zIndex: 50,
+                    transition: { duration: 0.2 }
+                  } : undefined}
                 >
                   <Card
                     card={cardData ?? { color: 0, value: 0 }}
@@ -128,7 +135,7 @@ export const CardStack = ({
                     scale={cardScale}
                     rotate={cardRotation}
                   />
-                </div>
+                </motion.div>
               );
             })}
           </div>
