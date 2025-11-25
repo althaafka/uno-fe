@@ -20,6 +20,7 @@ interface GameContextValue {
   animatingCard: AnimatingCard | null;
   startGame: () => Promise<void>;
   playCard: (cardId: string) => Promise<void>;
+  drawCard: () => Promise<void>;
   resetGame: () => void;
   onAnimationComplete: () => void;
 }
@@ -107,6 +108,38 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     }
   }, [gameId, gameState, isAnimating, startAnimationSequence]);
 
+  const drawCard = useCallback(async () => {
+    if (!gameId || !gameState) {
+      throw new Error('No active game');
+    }
+
+    if (isAnimating) {
+      return;
+    }
+
+    const humanPlayer = gameState.players.find(p => p.isHuman);
+    if (!humanPlayer) {
+      throw new Error('No human player found');
+    }
+
+    setError(null);
+
+    try {
+      const response = await gameApi.drawCard(gameId, humanPlayer.id);
+
+      console.log('Draw card response:', response);
+
+      startAnimationSequence(response.events, response.gameState, gameState);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to draw card';
+      setError(errorMessage);
+      console.error('Error playing card:', err);
+
+      setTimeout(() => setError(null), 3000);
+      throw err;
+    }
+  }, [gameId, gameState, isAnimating, startAnimationSequence]);
+
   const resetGame = useCallback(() => {
     setGameId(null);
     setInitialGameState(null as unknown as GameState);
@@ -122,6 +155,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     animatingCard,
     startGame,
     playCard,
+    drawCard,
     resetGame,
     onAnimationComplete,
   };

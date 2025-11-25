@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import type { Card, GameEvent, GameState } from '../types/game';
 import type { AnimatingCard, PlayerPosition } from '../types/animation';
 
-const ANIMATION_DELAY = 750;
+const ANIMATION_DELAY = 1000;
 
 interface UseAnimationQueueResult {
   // State
@@ -82,13 +82,17 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
   }, []);
 
   const processNextEvent = useCallback(() => {
+    console.log('🔄 processNextEvent called, queue length:', eventQueueRef.current.length);
+
     if (eventQueueRef.current.length === 0) {
       // All events processed
+      console.log('✅ All events processed, finishing animation sequence');
       setIsAnimating(false);
       setAnimatingCard(null);
       currentEventRef.current = null;
 
       if (pendingGameStateRef.current) {
+        console.log('📊 Applying final game state');
         setGameState(pendingGameStateRef.current);
         pendingGameStateRef.current = null;
       }
@@ -97,6 +101,12 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
 
     const event = eventQueueRef.current.shift()!;
     currentEventRef.current = event;
+
+    console.log('🎯 Processing event:', {
+      type: event.eventType === 0 ? 'PlayCard' : 'DrawCard',
+      playerId: event.playerId,
+      cardIdx: event.cardIdx,
+    });
 
     setGameState(currentState => {
       if (!currentState) return currentState;
@@ -121,25 +131,23 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
         const player = currentState.players.find(p => p.id === event.playerId);
         if (player) {
           const position = getPlayerPosition(event.playerId, currentState.players);
-          const targetIndex = player.cardCount;
+          const targetIndex = player.cardCount; // This will be the NEW card's index
           const dummyCard: Card = { id: '', color: 0, value: 0 };
 
-          const newState = applyEventToState(event, currentState, null);
-
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              setAnimatingCard({
-                playerId: event.playerId,
-                cardIndex: targetIndex,
-                card: dummyCard,
-                startPosition: position,
-                animationType: 'drawCard',
-                totalCards: player.cardCount + 1,
-              });
-            });
+          console.log('Setting up DrawCard animation:', {
+            position,
+            targetIndex,
+            currentCardCount: player.cardCount,
           });
 
-          return newState;
+          setAnimatingCard({
+            playerId: event.playerId,
+            cardIndex: targetIndex,
+            card: dummyCard,
+            startPosition: position,
+            animationType: 'drawCard',
+            totalCards: player.cardCount + 1,
+          });
         }
       } else {
         const newState = applyEventToState(event, currentState, null);
@@ -154,16 +162,16 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
   const onAnimationComplete = useCallback(() => {
     const event = currentEventRef.current;
 
+    console.log('Animation complete for event:', event?.eventType === 0 ? 'PlayCard' : 'DrawCard');
+
     setGameState(currentState => {
       if (!currentState || !event) return currentState;
 
-      if (event.eventType === 0) { // PlayCard
-        const card = animatingCard?.card;
-        if (!card) return currentState;
-        return applyEventToState(event, currentState, card);
-      }
+      // Apply state changes after animation
+      const card = animatingCard?.card;
+      if (!card) return currentState;
 
-      return currentState;
+      return applyEventToState(event, currentState, card);
     });
 
     setAnimatingCard(null);
@@ -183,18 +191,27 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     finalState: GameState,
     currentGameState: GameState
   ) => {
+    console.log('🎬 Starting animation sequence:', {
+      eventsCount: events.length,
+      events: events.map(e => ({
+        type: e.eventType === 0 ? 'PlayCard' : e.eventType === 1 ? 'DrawCard' : 'Unknown',
+        playerId: e.playerId,
+        cardIdx: e.cardIdx,
+      })),
+    });
+
     if (events.length === 0) {
+      console.log('⚠️ No events to animate, updating state directly');
       setGameState(finalState);
       return;
     }
+
     pendingGameStateRef.current = finalState;
-
     eventQueueRef.current = [...events];
-
     setIsAnimating(true);
-
     setGameState(currentGameState);
 
+    console.log('▶️ Processing first event...');
     processNextEvent();
   }, [processNextEvent]);
 

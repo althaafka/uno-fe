@@ -3,10 +3,14 @@ import { CardStack } from '../game/CardStack';
 import { PlayerAvatar } from '../game/PlayerAvatar';
 import { GameInfo } from '../game/GameInfo';
 import { AnimationLayer } from '../game/AnimationLayer';
+import { AnimationTestPanel } from '../dev/AnimationTestPanel';
 import { useGame } from '../../context/GameContext';
+import { useState } from 'react';
+import type { AnimatingCard } from '../../types/animation';
 
 export const GameBoard = () => {
-  const { gameState, isLoading, error, playCard, isAnimating, animatingCard, onAnimationComplete } = useGame();
+  const { gameState, isLoading, error, playCard, drawCard, isAnimating, animatingCard, onAnimationComplete } = useGame();
+  const [testAnimatingCard, setTestAnimatingCard] = useState<AnimatingCard | null>(null);
 
   const handleCardClick = async (cardId: string) => {
     if (isAnimating) return;
@@ -17,6 +21,37 @@ export const GameBoard = () => {
       console.error('Failed to play card:', err);
     }
   };
+
+  const handleDeckClick = async () => {
+    if (isAnimating) return;
+
+    // Only allow human player to draw on their turn
+    if (!gameState) return;
+
+    const humanPlayer = gameState.players.find(p => p.isHuman);
+    if (!humanPlayer) return;
+
+    if (gameState.currentPlayerId !== humanPlayer.id) {
+      console.log('Not your turn');
+      return;
+    }
+
+    try {
+      await drawCard();
+    } catch (err) {
+      console.error('Failed to draw card:', err);
+    }
+  };
+
+  const handleTestAnimation = (card: AnimatingCard) => {
+    setTestAnimatingCard(card);
+  };
+
+  const handleTestAnimationComplete = () => {
+    setTestAnimatingCard(null);
+  };
+
+  const currentAnimatingCard = animatingCard || testAnimatingCard;
 
   if (isLoading) {
     return (
@@ -62,6 +97,26 @@ export const GameBoard = () => {
       animatingCard={animatingCard}
       onAnimationComplete={onAnimationComplete}
     />
+
+    {/* <AnimationLayer
+      animatingCard={currentAnimatingCard}
+      onAnimationComplete={testAnimatingCard ? handleTestAnimationComplete : onAnimationComplete}
+    /> */}
+
+    {/* Error Message */}
+    {error && (
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[150]">
+        <div className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+          <span className="text-xl">⚠️</span>
+          <span className="font-semibold">{error}</span>
+        </div>
+      </div>
+    )}
+
+    {/* Dev Tool - Animation Test Panel */}
+    {import.meta.env.DEV && (
+      <AnimationTestPanel onTriggerAnimation={handleTestAnimation} />
+    )}
 
     {/* Player Top*/}
     <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-start gap-6">
@@ -132,12 +187,16 @@ export const GameBoard = () => {
       {/*Deck*/}
       <div className="flex flex-col items-center gap-2">
         <div
-          className="relative cursor-pointer"
+          className="relative cursor-pointer hover:scale-105 transition-transform"
+          onClick={handleDeckClick}
+          title={gameState?.currentPlayerId === gameState?.players.find(p => p.isHuman)?.id
+            ? "Click to draw a card"
+            : "Wait for your turn"}
         >
-          <div className="absolute top-1 left-1">
+          <div className="absolute top-1 left-1 pointer-events-none">
             <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.2}/>
           </div>
-          <div className="absolute top-2 left-2">
+          <div className="absolute top-2 left-2 pointer-events-none">
             <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.2}/>
           </div>
             <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.2}/>
