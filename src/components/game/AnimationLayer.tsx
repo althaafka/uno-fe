@@ -12,8 +12,8 @@ const ANIMATION_DURATION = 0.75; // seconds
 // Deck position
 const getDeckPosition = (): { x: number; y: number; rotation: number } => {
   return {
-    x: -50,
-    y: 0,
+    x: -120,
+    y: -45,
     rotation: 0,
   };
 };
@@ -29,33 +29,36 @@ const getDiscardPosition = (): { x: number; y: number; rotation: number } => {
 
 // Player card stack position (for PlayCard animation start)
 // TO DO: player hand's position still wrong
-const getPlayerCardPosition = (position: PlayerPosition, cardIndex: number, totalCards: number): { x: number; y: number; rotation: number } => {
+const getPlayerCardPosition = (position: PlayerPosition, cardIndex: number, _totalCards: number): { x: number; y: number; rotation: number } => {
   const cardOffset = cardIndex * 42;
   const cardOffsetVertical = cardIndex * 24;
+
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
 
   switch (position) {
     case 'bottom':
       return {
         x: -200 + cardOffset,
-        y: 280,
+        y: screenHeight/2 - 130,
         rotation: 0,
       };
     case 'top':
       return {
-        x: 200 - cardOffset,
-        y: -320,
+        x: 140 - cardOffset,
+        y: -screenHeight/2 + 30,
         rotation: 180,
       };
     case 'left':
       return {
-        x: -550,
-        y: -100 + cardOffsetVertical,
+        x: -screenWidth/2 + 50,
+        y: -180 + cardOffsetVertical,
         rotation: 90,
       };
     case 'right':
       return {
-        x: 550,
-        y: -100 + cardOffsetVertical,
+        x: screenWidth/2 - 110,
+        y: 82 - cardOffsetVertical,
         rotation: -90,
       };
   }
@@ -67,29 +70,32 @@ const getPlayerHandEndPosition = (position: PlayerPosition, cardIndex: number): 
   const cardOffset = cardIndex * 42;
   const cardOffsetVertical = cardIndex * 24;
 
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+
   switch (position) {
     case 'bottom':
       return {
         x: -200 + cardOffset,
-        y: 280,
+        y: screenHeight/2 - 130,
         rotation: 0,
       };
     case 'top':
       return {
-        x: -200 + cardOffset,
-        y: -280,
+        x: 140 - cardOffset,
+        y: -screenHeight/2 + 30,
         rotation: 180,
       };
     case 'left':
       return {
-        x: -550,
-        y: -100 + cardOffsetVertical,
+        x: -screenWidth/2 + 50,
+        y: -180 + cardOffsetVertical,
         rotation: 90,
       };
     case 'right':
       return {
-        x: 550,
-        y: -100 + cardOffsetVertical,
+        x: screenWidth/2 - 110,
+        y: 82 - cardOffsetVertical,
         rotation: -90,
       };
   }
