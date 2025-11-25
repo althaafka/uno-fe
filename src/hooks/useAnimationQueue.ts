@@ -102,18 +102,38 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
       if (!currentState) return currentState;
 
       if (event.eventType === 0) {
+        // PlayCard event - animate card from hand to discard pile
         const card = getCardForEvent(event, currentState);
-        if (card) {
+        const player = currentState.players.find(p => p.id === event.playerId);
+        if (card && player) {
           const position = getPlayerPosition(event.playerId, currentState.players);
           setAnimatingCard({
             playerId: event.playerId,
             cardIndex: event.cardIdx,
             card,
             startPosition: position,
+            animationType: 'playCard',
+            totalCards: player.cardCount,
+          });
+        }
+      } else if (event.eventType === 1) {
+        // DrawCard event - animate card from deck to player hand
+        const player = currentState.players.find(p => p.id === event.playerId);
+        if (player) {
+          const position = getPlayerPosition(event.playerId, currentState.players);
+          const targetIndex = player.cardCount;
+          const dummyCard: Card = { id: '', color: 0, value: 0 };
+
+          setAnimatingCard({
+            playerId: event.playerId,
+            cardIndex: targetIndex,
+            card: dummyCard,
+            startPosition: position,
+            animationType: 'drawCard',
+            totalCards: player.cardCount + 1,
           });
         }
       } else {
-        // Non play card doesnt have animation yet
         const newState = applyEventToState(event, currentState, null);
         setTimeout(() => processNextEvent(), ANIMATION_DELAY);
         return newState;

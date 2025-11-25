@@ -7,10 +7,65 @@ interface AnimationLayerProps {
   onAnimationComplete: () => void;
 }
 
-const ANIMATION_DURATION = 0.75; // ms
+const ANIMATION_DURATION = 0.75; // seconds
 
-const getStartPosition = (position: PlayerPosition, cardIndex: number): { x: number; y: number; rotation: number } => {
+// Deck position
+const getDeckPosition = (): { x: number; y: number; rotation: number } => {
+  return {
+    x: -50,
+    y: 0,
+    rotation: 0,
+  };
+};
+
+// Discard pile position
+const getDiscardPosition = (): { x: number; y: number; rotation: number } => {
+  return {
+    x: -20,
+    y: -45,
+    rotation: 0,
+  };
+};
+
+// Player card stack position (for PlayCard animation start)
+// TO DO: player hand's position still wrong
+const getPlayerCardPosition = (position: PlayerPosition, cardIndex: number, totalCards: number): { x: number; y: number; rotation: number } => {
   const cardOffset = cardIndex * 42;
+  const cardOffsetVertical = cardIndex * 24;
+
+  switch (position) {
+    case 'bottom':
+      return {
+        x: -200 + cardOffset,
+        y: 280,
+        rotation: 0,
+      };
+    case 'top':
+      return {
+        x: 200 - cardOffset,
+        y: -320,
+        rotation: 180,
+      };
+    case 'left':
+      return {
+        x: -550,
+        y: -100 + cardOffsetVertical,
+        rotation: 90,
+      };
+    case 'right':
+      return {
+        x: 550,
+        y: -100 + cardOffsetVertical,
+        rotation: -90,
+      };
+  }
+};
+
+// Player hand end position (for DrawCard animation end)
+// TO DO: player hand's position still wrong
+const getPlayerHandEndPosition = (position: PlayerPosition, cardIndex: number): { x: number; y: number; rotation: number } => {
+  const cardOffset = cardIndex * 42;
+  const cardOffsetVertical = cardIndex * 24;
 
   switch (position) {
     case 'bottom':
@@ -27,25 +82,17 @@ const getStartPosition = (position: PlayerPosition, cardIndex: number): { x: num
       };
     case 'left':
       return {
-        x: -380,
-        y: -150 + cardOffset * 0.6,
+        x: -550,
+        y: -100 + cardOffsetVertical,
         rotation: 90,
       };
     case 'right':
       return {
-        x: 380,
-        y: -150 + cardOffset * 0.6,
+        x: 550,
+        y: -100 + cardOffsetVertical,
         rotation: -90,
       };
   }
-};
-
-const getEndPosition = (): { x: number; y: number; rotation: number } => {
-  return {
-    x: 0,
-    y: 0,
-    rotation: 0,
-  };
 };
 
 export const AnimationLayer = ({ animatingCard, onAnimationComplete }: AnimationLayerProps) => {
@@ -53,8 +100,19 @@ export const AnimationLayer = ({ animatingCard, onAnimationComplete }: Animation
     return null;
   }
 
-  const startPos = getStartPosition(animatingCard.startPosition, animatingCard.cardIndex);
-  const endPos = getEndPosition();
+  let startPos: { x: number; y: number; rotation: number };
+  let endPos: { x: number; y: number; rotation: number };
+  let targetScale: number;
+
+  if (animatingCard.animationType === 'playCard') {
+    startPos = getPlayerCardPosition(animatingCard.startPosition, animatingCard.cardIndex, animatingCard.totalCards);
+    endPos = getDiscardPosition();
+    targetScale = 1.2;
+  } else {
+    startPos = getDeckPosition();
+    endPos = getPlayerHandEndPosition(animatingCard.startPosition, animatingCard.cardIndex);
+    targetScale = 1;
+  }
 
   return (
     <div
@@ -73,7 +131,7 @@ export const AnimationLayer = ({ animatingCard, onAnimationComplete }: Animation
             x: endPos.x,
             y: endPos.y,
             rotate: endPos.rotation,
-            scale: 1.2,
+            scale: targetScale,
           }}
           transition={{
             duration: ANIMATION_DURATION,
@@ -87,7 +145,10 @@ export const AnimationLayer = ({ animatingCard, onAnimationComplete }: Animation
         >
           <Card
             card={animatingCard.card}
-            isFaceDown={animatingCard.startPosition !== 'bottom'}
+            isFaceDown={
+              animatingCard.animationType === 'drawCard' ||
+              animatingCard.startPosition !== 'bottom'
+            }
           />
         </motion.div>
       </div>
