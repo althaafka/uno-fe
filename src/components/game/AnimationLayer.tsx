@@ -63,16 +63,6 @@ const getCardPositionFromDOM = (
     return result;
   }
 
-  // Fallback: return null if element not found
-  console.warn("❌ Card element not found for:", { position, cardIndex, selector });
-
-  // Debug: show what elements exist
-  const allCards = document.querySelectorAll(`[data-position="${position}"]`);
-  console.log(`Found ${allCards.length} cards with position="${position}"`);
-  allCards.forEach((el, i) => {
-    console.log(`  Card ${i}:`, el.getAttribute('data-card-index'));
-  });
-
   return null;
 };
 

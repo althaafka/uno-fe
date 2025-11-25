@@ -124,14 +124,22 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
           const targetIndex = player.cardCount;
           const dummyCard: Card = { id: '', color: 0, value: 0 };
 
-          setAnimatingCard({
-            playerId: event.playerId,
-            cardIndex: targetIndex,
-            card: dummyCard,
-            startPosition: position,
-            animationType: 'drawCard',
-            totalCards: player.cardCount + 1,
+          const newState = applyEventToState(event, currentState, null);
+
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              setAnimatingCard({
+                playerId: event.playerId,
+                cardIndex: targetIndex,
+                card: dummyCard,
+                startPosition: position,
+                animationType: 'drawCard',
+                totalCards: player.cardCount + 1,
+              });
+            });
           });
+
+          return newState;
         }
       } else {
         const newState = applyEventToState(event, currentState, null);
@@ -149,10 +157,13 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     setGameState(currentState => {
       if (!currentState || !event) return currentState;
 
-      const card = animatingCard?.card;
-      if (!card) return currentState;
+      if (event.eventType === 0) { // PlayCard
+        const card = animatingCard?.card;
+        if (!card) return currentState;
+        return applyEventToState(event, currentState, card);
+      }
 
-      return applyEventToState(event, currentState, card);
+      return currentState;
     });
 
     setAnimatingCard(null);
