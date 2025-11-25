@@ -4,22 +4,31 @@ import type { AnimatingCard, PlayerPosition } from '../types/animation';
 
 const ANIMATION_DELAY = 1000;
 
+interface GameOverInfo {
+  winnerId: string;
+  isGameOver: boolean;
+}
+
 interface UseAnimationQueueResult {
   // State
   gameState: GameState | null;
   isAnimating: boolean;
   animatingCard: AnimatingCard | null;
+  gameOver: GameOverInfo | null;
 
   // Actions
   setInitialGameState: (state: GameState) => void;
   startAnimationSequence: (events: GameEvent[], finalState: GameState, currentGameState: GameState) => void;
   onAnimationComplete: () => void;
+  clearGameOver: () => void;
+  setGameOverTest: (winnerId: string) => void; // For testing purposes
 }
 
 export const useAnimationQueue = (): UseAnimationQueueResult => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [animatingCard, setAnimatingCard] = useState<AnimatingCard | null>(null);
+  const [gameOver, setGameOver] = useState<GameOverInfo | null>(null);
 
   const eventQueueRef = useRef<GameEvent[]>([]);
   const pendingGameStateRef = useRef<GameState | null>(null);
@@ -82,6 +91,9 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
         }
         break;
 
+      case 2: // GameOver
+        break;
+
     }
 
     return newState;
@@ -109,7 +121,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     currentEventRef.current = event;
 
     console.log('🎯 Processing event:', {
-      type: event.eventType === 0 ? 'PlayCard' : 'DrawCard',
+      type: event.eventType === 0 ? 'PlayCard' : event.eventType === 1 ? 'DrawCard' : 'GameOver',
       playerId: event.playerId,
       cardIdx: event.cardIdx,
     });
@@ -159,6 +171,13 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
             totalCards: player.cardCount + 1,
           });
         }
+      } else if (event.eventType === 2) {
+        setGameOver({
+          winnerId: event.playerId,
+          isGameOver: true,
+        });
+
+        setTimeout(() => processNextEvent(), ANIMATION_DELAY);
       } else {
         const newState = applyEventToState(event, currentState, null);
         setTimeout(() => processNextEvent(), ANIMATION_DELAY);
@@ -195,6 +214,17 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     setGameState(state);
   }, []);
 
+  const clearGameOver = useCallback(() => {
+    setGameOver(null);
+  }, []);
+
+  const setGameOverTest = useCallback((winnerId: string) => {
+    setGameOver({
+      winnerId,
+      isGameOver: true,
+    });
+  }, []);
+
   const startAnimationSequence = useCallback((
     events: GameEvent[],
     finalState: GameState,
@@ -228,8 +258,11 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     gameState,
     isAnimating,
     animatingCard,
+    gameOver,
     setInitialGameState,
     startAnimationSequence,
     onAnimationComplete,
+    clearGameOver,
+    setGameOverTest,
   };
 };

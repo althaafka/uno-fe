@@ -4,12 +4,17 @@ import { PlayerAvatar } from '../game/PlayerAvatar';
 import { GameInfo } from '../game/GameInfo';
 import { AnimationLayer } from '../game/AnimationLayer';
 import { AnimationTestPanel } from '../dev/AnimationTestPanel';
+import { GameDialog } from '../game/GameDialog';
 import { useGame } from '../../context/GameContext';
 import { useState } from 'react';
 import type { AnimatingCard } from '../../types/animation';
 
-export const GameBoard = () => {
-  const { gameState, isLoading, error, playCard, drawCard, isAnimating, animatingCard, onAnimationComplete } = useGame();
+interface GameBoardProps {
+  onBackToLanding: () => void;
+}
+
+export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
+  const { gameState, isLoading, error, playCard, drawCard, isAnimating, animatingCard, onAnimationComplete, gameOver, resetGame, setGameOverTest } = useGame();
   const [testAnimatingCard, setTestAnimatingCard] = useState<AnimatingCard | null>(null);
 
   const handleCardClick = async (cardId: string) => {
@@ -51,7 +56,50 @@ export const GameBoard = () => {
     setTestAnimatingCard(null);
   };
 
+  const handleTestGameOver = (winnerId: string, isHumanWinner: boolean) => {
+    if (!gameState) return;
+
+    // Get the actual winner ID from game state
+    const mockWinnerId = isHumanWinner
+      ? gameState.players.find(p => p.isHuman)?.id || winnerId
+      : gameState.players.find(p => !p.isHuman)?.id || winnerId;
+
+    console.log('Test Game Over triggered:', { winnerId: mockWinnerId, isHumanWinner });
+
+    // Trigger game over using the test function
+    setGameOverTest(mockWinnerId);
+  };
+
+  const handleBackToLandingClick = () => {
+    resetGame();
+    onBackToLanding();
+  };
+
   const currentAnimatingCard = animatingCard || testAnimatingCard;
+
+  // Determine winner message
+  const getGameOverMessage = () => {
+    if (!gameOver || !gameState) return { title: '', message: '' };
+
+    const humanPlayer = gameState.players.find(p => p.isHuman);
+    const winner = gameState.players.find(p => p.id === gameOver.winnerId);
+
+    if (!winner) return { title: '', message: '' };
+
+    if (humanPlayer?.id === gameOver.winnerId) {
+      return {
+        title: 'Congratulations!',
+        message: 'You won the game!',
+      };
+    } else {
+      return {
+        title: 'Game Over',
+        message: `${winner.name} won the game!`,
+      };
+    }
+  };
+
+  const gameOverMessage = getGameOverMessage();
 
   if (isLoading) {
     return (
@@ -103,6 +151,20 @@ export const GameBoard = () => {
       onAnimationComplete={testAnimatingCard ? handleTestAnimationComplete : onAnimationComplete}
     /> */}
 
+    {/* Game Over Dialog */}
+    <GameDialog
+      isOpen={gameOver?.isGameOver ?? false}
+      title={gameOverMessage.title}
+      message={gameOverMessage.message}
+      buttons={[
+        {
+          text: 'Back to Menu',
+          onClick: handleBackToLandingClick,
+          variant: 'primary',
+        },
+      ]}
+    />
+
     {/* Error Message */}
     {error && (
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[150]">
@@ -115,7 +177,10 @@ export const GameBoard = () => {
 
     {/* Dev Tool - Animation Test Panel */}
     {import.meta.env.DEV && (
-      <AnimationTestPanel onTriggerAnimation={handleTestAnimation} />
+      <AnimationTestPanel
+        onTriggerAnimation={handleTestAnimation}
+        onTriggerGameOver={handleTestGameOver}
+      />
     )}
 
     {/* Player Top*/}

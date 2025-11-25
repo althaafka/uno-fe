@@ -4,6 +4,7 @@ import type { AnimatingCard, PlayerPosition } from '../../types/animation';
 
 interface AnimationTestPanelProps {
   onTriggerAnimation: (animatingCard: AnimatingCard) => void;
+  onTriggerGameOver?: (winnerId: string, isHumanWinner: boolean) => void;
 }
 
 const SAMPLE_CARD: Card = {
@@ -12,12 +13,13 @@ const SAMPLE_CARD: Card = {
   value: 5,
 };
 
-export const AnimationTestPanel = ({ onTriggerAnimation }: AnimationTestPanelProps) => {
+export const AnimationTestPanel = ({ onTriggerAnimation, onTriggerGameOver }: AnimationTestPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [animationType, setAnimationType] = useState<'playCard' | 'drawCard'>('playCard');
   const [position, setPosition] = useState<PlayerPosition>('bottom');
   const [cardIndex, setCardIndex] = useState(0);
   const [totalCards, setTotalCards] = useState(7);
+  const [gameOverWinner, setGameOverWinner] = useState<'human' | 'bot'>('human');
 
   const handleTrigger = () => {
     const animatingCard: AnimatingCard = {
@@ -29,6 +31,12 @@ export const AnimationTestPanel = ({ onTriggerAnimation }: AnimationTestPanelPro
       playerId: 'test-player',
     };
     onTriggerAnimation(animatingCard);
+  };
+
+  const handleGameOverTrigger = () => {
+    if (onTriggerGameOver) {
+      onTriggerGameOver('test-winner-id', gameOverWinner === 'human');
+    }
   };
 
   if (!isOpen) {
@@ -139,6 +147,43 @@ export const AnimationTestPanel = ({ onTriggerAnimation }: AnimationTestPanelPro
         >
           🚀 Trigger Animation
         </button>
+
+        {/* Divider */}
+        <div className="border-t border-gray-700 my-4"></div>
+
+        {/* Game Over Test Section */}
+        <div>
+          <label className="block text-sm font-medium mb-2">🏆 Game Over Dialog</label>
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setGameOverWinner('human')}
+              className={`flex-1 px-3 py-2 rounded text-sm ${
+                gameOverWinner === 'human'
+                  ? 'bg-green-600'
+                  : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              You Win
+            </button>
+            <button
+              onClick={() => setGameOverWinner('bot')}
+              className={`flex-1 px-3 py-2 rounded text-sm ${
+                gameOverWinner === 'bot'
+                  ? 'bg-red-600'
+                  : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              Bot Wins
+            </button>
+          </div>
+          <button
+            onClick={handleGameOverTrigger}
+            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 rounded-lg"
+            disabled={!onTriggerGameOver}
+          >
+            🎮 Show Game Over
+          </button>
+        </div>
 
         {/* Info */}
         <div className="text-xs text-gray-400 mt-4 p-3 bg-gray-900 rounded">

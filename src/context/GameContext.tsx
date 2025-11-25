@@ -4,6 +4,11 @@ import type { AnimatingCard } from '../types/animation';
 import { gameApi } from '../services/api/gameApi';
 import { useAnimationQueue } from '../hooks/useAnimationQueue';
 
+interface GameOverInfo {
+  winnerId: string;
+  isGameOver: boolean;
+}
+
 const isCardPlayable = (card: Card, topCard: Card, currentColor: number): boolean => {
   if (card.color === 4) return true;
   if (card.color === currentColor) return true;
@@ -18,11 +23,13 @@ interface GameContextValue {
   error: string | null;
   isAnimating: boolean;
   animatingCard: AnimatingCard | null;
+  gameOver: GameOverInfo | null;
   startGame: () => Promise<void>;
   playCard: (cardId: string) => Promise<void>;
   drawCard: () => Promise<void>;
   resetGame: () => void;
   onAnimationComplete: () => void;
+  setGameOverTest: (winnerId: string) => void; // For testing
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -40,9 +47,12 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     gameState,
     isAnimating,
     animatingCard,
+    gameOver,
     setInitialGameState,
     startAnimationSequence,
     onAnimationComplete,
+    clearGameOver,
+    setGameOverTest,
   } = useAnimationQueue();
 
   const startGame = useCallback(async () => {
@@ -144,7 +154,8 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     setGameId(null);
     setInitialGameState(null as unknown as GameState);
     setError(null);
-  }, [setInitialGameState]);
+    clearGameOver();
+  }, [setInitialGameState, clearGameOver]);
 
   const value: GameContextValue = {
     gameId,
@@ -153,11 +164,13 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     error,
     isAnimating,
     animatingCard,
+    gameOver,
     startGame,
     playCard,
     drawCard,
     resetGame,
     onAnimationComplete,
+    setGameOverTest,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

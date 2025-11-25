@@ -32,8 +32,8 @@ export interface GameData {
   gameState: GameState;
 }
 
-export type GameEventType = 0 | 1;
-// 0=PlayCard, 1=DrawCard
+export type GameEventType = 0 | 1 | 2;
+// 0=PlayCard, 1=DrawCard, 2=GameOver
 
 export interface GameEvent {
   eventType: GameEventType;

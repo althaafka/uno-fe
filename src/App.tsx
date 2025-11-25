@@ -13,11 +13,15 @@ function AppContent() {
     setCurrentScreen('game')
   }
 
+  const handleBackToLanding = () => {
+    setCurrentScreen('landing')
+  }
+
   if (currentScreen === 'landing') {
     return <LandingScreen onGameStart={handleGameStart} />
   }
 
-  return <GameBoard />
+  return <GameBoard onBackToLanding={handleBackToLanding} />
 }
 
 function App() {
