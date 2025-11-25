@@ -27,78 +27,53 @@ const getDiscardPosition = (): { x: number; y: number; rotation: number } => {
   };
 };
 
-// Player card stack position (for PlayCard animation start)
-// TO DO: player hand's position still wrong
-const getPlayerCardPosition = (position: PlayerPosition, cardIndex: number, _totalCards: number): { x: number; y: number; rotation: number } => {
-  const cardOffset = cardIndex * 42;
-  const cardOffsetVertical = cardIndex * 24;
-
-  const screenWidth = window.innerWidth;
-  const screenHeight = window.innerHeight;
-
+// Get the rotation for each player position
+const getRotationForPosition = (position: PlayerPosition): number => {
   switch (position) {
-    case 'bottom':
-      return {
-        x: -200 + cardOffset,
-        y: screenHeight/2 - 130,
-        rotation: 0,
-      };
-    case 'top':
-      return {
-        x: 140 - cardOffset,
-        y: -screenHeight/2 + 30,
-        rotation: 180,
-      };
-    case 'left':
-      return {
-        x: -screenWidth/2 + 50,
-        y: -180 + cardOffsetVertical,
-        rotation: 90,
-      };
-    case 'right':
-      return {
-        x: screenWidth/2 - 110,
-        y: 82 - cardOffsetVertical,
-        rotation: -90,
-      };
+    case 'bottom': return 0;
+    case 'top': return 180;
+    case 'left': return 90;
+    case 'right': return -90;
   }
 };
 
-// Player hand end position (for DrawCard animation end)
-// TO DO: player hand's position still wrong
-const getPlayerHandEndPosition = (position: PlayerPosition, cardIndex: number): { x: number; y: number; rotation: number } => {
-  const cardOffset = cardIndex * 42;
-  const cardOffsetVertical = cardIndex * 24;
+// Get card position by finding the actual DOM element
+const getCardPositionFromDOM = (
+  position: PlayerPosition,
+  cardIndex: number
+): { x: number; y: number; rotation: number } | null => {
+  const selector = `[data-position="${position}"][data-card-index="${cardIndex}"]`;
 
-  const screenWidth = window.innerWidth;
-  const screenHeight = window.innerHeight;
+  console.log("🔍 Searching for card:", { position, cardIndex, selector });
 
-  switch (position) {
-    case 'bottom':
-      return {
-        x: -200 + cardOffset,
-        y: screenHeight/2 - 130,
-        rotation: 0,
-      };
-    case 'top':
-      return {
-        x: 140 - cardOffset,
-        y: -screenHeight/2 + 30,
-        rotation: 180,
-      };
-    case 'left':
-      return {
-        x: -screenWidth/2 + 50,
-        y: -180 + cardOffsetVertical,
-        rotation: 90,
-      };
-    case 'right':
-      return {
-        x: screenWidth/2 - 110,
-        y: 82 - cardOffsetVertical,
-        rotation: -90,
-      };
+  const cardElement = document.querySelector(selector) as HTMLElement;
+
+  if (cardElement) {
+    const rect = cardElement.getBoundingClientRect();
+    const screenCenterX = window.innerWidth / 2;
+    const screenCenterY = window.innerHeight / 2;
+
+    const result = {
+      x: rect.left + rect.width / 2 - screenCenterX -32,
+      y: rect.top + rect.height / 2 - screenCenterY -48,
+      rotation: getRotationForPosition(position),
+    };
+
+    console.log("✅ Found card element:", result);
+    return result;
   }
+
+  // Fallback: return null if element not found
+  console.warn("❌ Card element not found for:", { position, cardIndex, selector });
+
+  // Debug: show what elements exist
+  const allCards = document.querySelectorAll(`[data-position="${position}"]`);
+  console.log(`Found ${allCards.length} cards with position="${position}"`);
+  allCards.forEach((el, i) => {
+    console.log(`  Card ${i}:`, el.getAttribute('data-card-index'));
+  });
+
+  return null;
 };
 
 export const AnimationLayer = ({ animatingCard, onAnimationComplete }: AnimationLayerProps) => {
@@ -111,12 +86,26 @@ export const AnimationLayer = ({ animatingCard, onAnimationComplete }: Animation
   let targetScale: number;
 
   if (animatingCard.animationType === 'playCard') {
-    startPos = getPlayerCardPosition(animatingCard.startPosition, animatingCard.cardIndex, animatingCard.totalCards);
+    const domPos = getCardPositionFromDOM(animatingCard.startPosition, animatingCard.cardIndex);
+
+
+    startPos = domPos || {
+      x: 0,
+      y: 200,
+      rotation: getRotationForPosition(animatingCard.startPosition),
+    };
     endPos = getDiscardPosition();
     targetScale = 1.2;
   } else {
     startPos = getDeckPosition();
-    endPos = getPlayerHandEndPosition(animatingCard.startPosition, animatingCard.cardIndex);
+
+    const domPos = getCardPositionFromDOM(animatingCard.startPosition, animatingCard.cardIndex);
+
+    endPos = domPos || {
+      x: 0,
+      y: 200,
+      rotation: getRotationForPosition(animatingCard.startPosition),
+    };
     targetScale = 1;
   }
 

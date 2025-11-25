@@ -82,6 +82,8 @@ export const CardStack = ({
                   <div
                     key={cardIndex}
                     className="absolute"
+                    data-card-index={globalCardIndex}
+                    data-position={playerPosition}
                     style={{
                       top: `${centerOffset + positionIndex * overlapOffset}px`,
                       opacity: isHidden ? 0 : 1,
@@ -127,6 +129,8 @@ export const CardStack = ({
                 <motion.div
                   key={cardIndex}
                   className="absolute"
+                  data-card-index={globalCardIndex}
+                  data-position={playerPosition}
                   style={{
                     left: `${centerOffset + positionIndex * overlapOffset}px`,
                     opacity: isHidden ? 0 : 1,
