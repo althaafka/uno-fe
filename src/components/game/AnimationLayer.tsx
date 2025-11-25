@@ -169,8 +169,8 @@ export const AnimationLayer = ({ animatingCard, onAnimationComplete }: Animation
           <Card
             card={animatingCard.card}
             isFaceDown={
-              animatingCard.animationType === 'drawCard' ||
-              animatingCard.startPosition !== 'bottom'
+              (animatingCard.animationType === 'drawCard' && animatingCard.startPosition !== 'bottom') ||
+              (animatingCard.animationType === 'playCard' && animatingCard.startPosition !== 'bottom')
             }
           />
         </motion.div>

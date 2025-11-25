@@ -71,7 +71,13 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
       case 1: // DrawCard
         const drawPlayerIndex = newState.players.findIndex(p => p.id === event.playerId);
         if (drawPlayerIndex !== -1) {
-          newState.players[drawPlayerIndex].cardCount += 1;
+          const drawPlayer = newState.players[drawPlayerIndex];
+
+          if (drawPlayer.isHuman && card) {
+            drawPlayer.cards.push(card);
+          }
+
+          drawPlayer.cardCount += 1;
           newState.deckCardCount = Math.max(0, newState.deckCardCount - 1);
         }
         break;
@@ -132,18 +138,22 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
         if (player) {
           const position = getPlayerPosition(event.playerId, currentState.players);
           const targetIndex = player.cardCount; // This will be the NEW card's index
-          const dummyCard: Card = { id: '', color: 0, value: 0 };
+
+          // Use real card info from event if available (human player), otherwise use dummy card (bots)
+          const card: Card = event.card || { id: '', color: 0, value: 0 };
 
           console.log('Setting up DrawCard animation:', {
             position,
             targetIndex,
             currentCardCount: player.cardCount,
+            hasRealCard: !!event.card,
+            card,
           });
 
           setAnimatingCard({
             playerId: event.playerId,
             cardIndex: targetIndex,
-            card: dummyCard,
+            card,
             startPosition: position,
             animationType: 'drawCard',
             totalCards: player.cardCount + 1,
@@ -162,14 +172,12 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
   const onAnimationComplete = useCallback(() => {
     const event = currentEventRef.current;
 
-    console.log('Animation complete for event:', event?.eventType === 0 ? 'PlayCard' : 'DrawCard');
+    console.log('🏁 Animation complete for event:', event?.eventType === 0 ? 'PlayCard' : 'DrawCard');
 
     setGameState(currentState => {
       if (!currentState || !event) return currentState;
 
-      // Apply state changes after animation
-      const card = animatingCard?.card;
-      if (!card) return currentState;
+      const card = animatingCard?.card || null;
 
       return applyEventToState(event, currentState, card);
     });
@@ -177,6 +185,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     setAnimatingCard(null);
     currentEventRef.current = null;
 
+    console.log('⏭️  Scheduling next event...');
     setTimeout(() => {
       processNextEvent();
     }, ANIMATION_DELAY);
