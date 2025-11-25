@@ -10,6 +10,7 @@ interface CardStackProps {
   overlapOffset?: number;
   playerPosition: 'top' | 'bottom' | 'left' | 'right';
   onCardClick?: (cardId: string) => void;
+  hiddenCardIndex?: number;
 }
 
 export const CardStack = ({
@@ -20,6 +21,7 @@ export const CardStack = ({
   overlapOffset = 42,
   playerPosition,
   onCardClick,
+  hiddenCardIndex,
 }: CardStackProps) => {
   const isFaceDown = !cards || cards.length === 0;
   // Orientation based on player position
@@ -74,12 +76,15 @@ export const CardStack = ({
                 const globalCardIndex = colIndex * maxCardsPerRow + cardIndex;
                 const cardData = cards?.[globalCardIndex];
 
+                const isHidden = hiddenCardIndex === globalCardIndex;
+
                 return (
                   <div
                     key={cardIndex}
                     className="absolute"
                     style={{
                       top: `${centerOffset + positionIndex * overlapOffset}px`,
+                      opacity: isHidden ? 0 : 1,
                     }}
                   >
                     <Card
@@ -116,6 +121,7 @@ export const CardStack = ({
               const positionIndex = shouldReverse ? (cardsInRow - 1 - cardIndex) : cardIndex;
               const globalCardIndex = rowIndex * maxCardsPerRow + cardIndex;
               const cardData = cards?.[globalCardIndex];
+              const isHidden = hiddenCardIndex === globalCardIndex;
 
               return (
                 <motion.div
@@ -123,14 +129,15 @@ export const CardStack = ({
                   className="absolute"
                   style={{
                     left: `${centerOffset + positionIndex * overlapOffset}px`,
+                    opacity: isHidden ? 0 : 1,
                   }}
-                  whileHover={!isFaceDown ? {
+                  whileHover={!isFaceDown && !isHidden ? {
                     y: -20,
                     scale: 1.05,
                     zIndex: 50,
                     transition: { duration: 0.2 }
                   } : undefined}
-                  onClick={() => cardData && onCardClick?.(cardData.id)}
+                  onClick={() => cardData && !isHidden && onCardClick?.(cardData.id)}
                 >
                   <Card
                     card={cardData ?? { id: '', color: 0, value: 0 }}

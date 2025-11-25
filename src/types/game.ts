@@ -31,3 +31,14 @@ export interface GameData {
   gameId: string;
   gameState: GameState;
 }
+
+export type GameEventType = 0 | 1;
+// 0=PlayCard, 1=DrawCard
+
+export interface GameEvent {
+  eventType: GameEventType;
+  timestamp: string;
+  playerId: string;
+  cardIdx: number;
+  card: Card | null;
+}

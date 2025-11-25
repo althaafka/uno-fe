@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import type { Card, GameData, GameState } from '../types/game';
+import type { AnimatingCard } from '../types/animation';
 import { gameApi } from '../services/api/gameApi';
+import { useAnimationQueue } from '../hooks/useAnimationQueue';
 
 const isCardPlayable = (card: Card, topCard: Card, currentColor: number): boolean => {
   if (card.color === 4) return true;
@@ -14,9 +16,12 @@ interface GameContextValue {
   gameState: GameState | null;
   isLoading: boolean;
   error: string | null;
+  isAnimating: boolean;
+  animatingCard: AnimatingCard | null;
   startGame: () => Promise<void>;
   playCard: (cardId: string) => Promise<void>;
   resetGame: () => void;
+  onAnimationComplete: () => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -27,9 +32,17 @@ interface GameProviderProps {
 
 export const GameProvider = ({ children }: GameProviderProps) => {
   const [gameId, setGameId] = useState<string | null>(null);
-  const [gameState, setGameState] = useState<GameState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    gameState,
+    isAnimating,
+    animatingCard,
+    setInitialGameState,
+    startAnimationSequence,
+    onAnimationComplete,
+  } = useAnimationQueue();
 
   const startGame = useCallback(async () => {
     setIsLoading(true);
@@ -39,7 +52,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       const data: GameData = await gameApi.startGame();
       console.log('Game started successfully:', data);
       setGameId(data.gameId);
-      setGameState(data.gameState);
+      setInitialGameState(data.gameState);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);
@@ -48,11 +61,16 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [setInitialGameState]);
 
   const playCard = useCallback(async (cardId: string) => {
     if (!gameId || !gameState) {
       throw new Error('No active game');
+    }
+
+    // Don't allow playing cards during animation
+    if (isAnimating) {
+      return;
     }
 
     const humanPlayer = gameState.players.find(p => p.isHuman);
@@ -75,7 +93,9 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     try {
       const response = await gameApi.playCard(gameId, humanPlayer.id, cardId);
       if (response.success) {
-        setGameState(response.gameState);
+        // Start animation sequence instead of directly updating state
+        console.log('Play card response:', response);
+        startAnimationSequence(response.events, response.gameState, gameState);
       } else {
         throw new Error(response.message);
       }
@@ -85,22 +105,25 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       console.error('Error playing card:', err);
       throw err;
     }
-  }, [gameId, gameState]);
+  }, [gameId, gameState, isAnimating, startAnimationSequence]);
 
   const resetGame = useCallback(() => {
     setGameId(null);
-    setGameState(null);
+    setInitialGameState(null as unknown as GameState);
     setError(null);
-  }, []);
+  }, [setInitialGameState]);
 
   const value: GameContextValue = {
     gameId,
     gameState,
     isLoading,
     error,
+    isAnimating,
+    animatingCard,
     startGame,
     playCard,
     resetGame,
+    onAnimationComplete,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

@@ -2,12 +2,15 @@ import { Card } from '../game/Card';
 import { CardStack } from '../game/CardStack';
 import { PlayerAvatar } from '../game/PlayerAvatar';
 import { GameInfo } from '../game/GameInfo';
+import { AnimationLayer } from '../game/AnimationLayer';
 import { useGame } from '../../context/GameContext';
 
 export const GameBoard = () => {
-  const { gameState, isLoading, error, playCard } = useGame();
+  const { gameState, isLoading, error, playCard, isAnimating, animatingCard, onAnimationComplete } = useGame();
 
   const handleCardClick = async (cardId: string) => {
+    if (isAnimating) return;
+
     try {
       await playCard(cardId);
     } catch (err) {
@@ -33,9 +36,9 @@ export const GameBoard = () => {
 
   const humanPlayer = gameState.players.find((p) => p.isHuman);
   const otherPlayers = gameState.players.filter((p) => !p.isHuman);
-  const player2 = otherPlayers[0];
-  const player3 = otherPlayers[1];
-  const player4 = otherPlayers[2];
+  const player2 = otherPlayers[0]; // left
+  const player3 = otherPlayers[1]; // top
+  const player4 = otherPlayers[2]; // right
 
   if (!humanPlayer) {
     return (
@@ -45,8 +48,21 @@ export const GameBoard = () => {
     );
   }
 
+  const getHiddenCardIndex = (playerId: string): number | undefined => {
+    if (animatingCard && animatingCard.playerId === playerId) {
+      return animatingCard.cardIndex;
+    }
+    return undefined;
+  };
+
   return (
   <div className="w-screen h-screen bg-uno-purple overflow-hidden relative">
+    {/* Animation Layer */}
+    <AnimationLayer
+      animatingCard={animatingCard}
+      onAnimationComplete={onAnimationComplete}
+    />
+
     {/* Player Top*/}
     <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-start gap-6">
       <PlayerAvatar
@@ -58,6 +74,7 @@ export const GameBoard = () => {
         cardCount={player3.cardCount}
         maxCardsPerRow={15}
         playerPosition='top'
+        hiddenCardIndex={getHiddenCardIndex(player3.id)}
       />
     </div>
 
@@ -73,6 +90,7 @@ export const GameBoard = () => {
         overlapOffset={24}
         maxCardsPerRow={15}
         playerPosition='right'
+        hiddenCardIndex={getHiddenCardIndex(player4.id)}
       />
     </div>
 
@@ -83,6 +101,7 @@ export const GameBoard = () => {
         overlapOffset={24}
         maxCardsPerRow={15}
         playerPosition='left'
+        hiddenCardIndex={getHiddenCardIndex(player2.id)}
       />
       <PlayerAvatar
         name={player2.name}
@@ -99,6 +118,7 @@ export const GameBoard = () => {
         maxCardsPerRow={15}
         playerPosition='bottom'
         onCardClick={handleCardClick}
+        hiddenCardIndex={getHiddenCardIndex(humanPlayer.id)}
       />
       <PlayerAvatar
         name={humanPlayer.name}

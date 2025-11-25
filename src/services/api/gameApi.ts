@@ -1,9 +1,10 @@
-import type { GameData, GameState } from '../../types/game';
+import type { GameData, GameEvent, GameState } from '../../types/game';
 
 export interface PlayCardResponse {
   success: boolean;
   message: string;
   gameState: GameState;
+  events: GameEvent[];
 }
 
 const API_BASE_URL = 'http://localhost:5165/api';
