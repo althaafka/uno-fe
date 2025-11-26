@@ -5,6 +5,7 @@ import type { AnimatingCard, PlayerPosition } from '../../types/animation';
 interface AnimationTestPanelProps {
   onTriggerAnimation: (animatingCard: AnimatingCard) => void;
   onTriggerGameOver?: (winnerId: string, isHumanWinner: boolean) => void;
+  onTriggerColorPicker?: (isInteractive: boolean) => void;
 }
 
 const SAMPLE_CARD: Card = {
@@ -13,13 +14,14 @@ const SAMPLE_CARD: Card = {
   value: 5,
 };
 
-export const AnimationTestPanel = ({ onTriggerAnimation, onTriggerGameOver }: AnimationTestPanelProps) => {
+export const AnimationTestPanel = ({ onTriggerAnimation, onTriggerGameOver, onTriggerColorPicker }: AnimationTestPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [animationType, setAnimationType] = useState<'playCard' | 'drawCard'>('playCard');
   const [position, setPosition] = useState<PlayerPosition>('bottom');
   const [cardIndex, setCardIndex] = useState(0);
   const [totalCards, setTotalCards] = useState(7);
   const [gameOverWinner, setGameOverWinner] = useState<'human' | 'bot'>('human');
+  const [colorPickerMode, setColorPickerMode] = useState<'interactive' | 'non-interactive'>('interactive');
 
   const handleTrigger = () => {
     const animatingCard: AnimatingCard = {
@@ -36,6 +38,12 @@ export const AnimationTestPanel = ({ onTriggerAnimation, onTriggerGameOver }: An
   const handleGameOverTrigger = () => {
     if (onTriggerGameOver) {
       onTriggerGameOver('test-winner-id', gameOverWinner === 'human');
+    }
+  };
+
+  const handleColorPickerTrigger = () => {
+    if (onTriggerColorPicker) {
+      onTriggerColorPicker(colorPickerMode === 'interactive');
     }
   };
 
@@ -182,6 +190,43 @@ export const AnimationTestPanel = ({ onTriggerAnimation, onTriggerGameOver }: An
             disabled={!onTriggerGameOver}
           >
             🎮 Show Game Over
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-700 my-4"></div>
+
+        {/* Color Picker Test Section */}
+        <div>
+          <label className="block text-sm font-medium mb-2">🎨 Color Picker Dialog</label>
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setColorPickerMode('interactive')}
+              className={`flex-1 px-3 py-2 rounded text-sm ${
+                colorPickerMode === 'interactive'
+                  ? 'bg-blue-600'
+                  : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              You Choose
+            </button>
+            <button
+              onClick={() => setColorPickerMode('non-interactive')}
+              className={`flex-1 px-3 py-2 rounded text-sm ${
+                colorPickerMode === 'non-interactive'
+                  ? 'bg-orange-600'
+                  : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              Opponent Chooses
+            </button>
+          </div>
+          <button
+            onClick={handleColorPickerTrigger}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg"
+            disabled={!onTriggerColorPicker}
+          >
+            🎨 Show Color Picker
           </button>
         </div>
 

@@ -36,7 +36,7 @@ export const gameApi = {
     return response.json();
   },
 
-  playCard: async (gameId: string, playerId: string, cardId: string): Promise<PlayCardResponse> => {
+  playCard: async (gameId: string, playerId: string, cardId: string, chosenColor?: number): Promise<PlayCardResponse> => {
     const response = await fetch(`${API_BASE_URL}/Game/${gameId}/play`, {
       method: 'POST',
       headers: {
@@ -45,10 +45,12 @@ export const gameApi = {
       body: JSON.stringify({
         playerId,
         cardId,
+        chosenColor: chosenColor !== undefined ? chosenColor : null,
       }),
     });
 
     if (!response.ok) {
+      console.log("Error:", await response.json())
       throw new Error(`Failed to play card: ${response.status}`);
     }
 
@@ -73,7 +75,6 @@ export const gameApi = {
 
     const data = await response.json();
 
-    // Check if backend returned success: false (e.g., player has playable cards)
     if (!data.success) {
       throw new Error(data.message || 'Failed to draw card');
     }

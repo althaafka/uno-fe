@@ -3,10 +3,29 @@ import type { Card, GameEvent, GameState } from '../types/game';
 import type { AnimatingCard, PlayerPosition } from '../types/animation';
 
 const ANIMATION_DELAY = 1000;
+const COLOR_PICKER_DELAY = 2000; // Delay for color picker
+
+const getEventTypeName = (type: number): string => {
+  switch (type) {
+    case 0: return 'PlayCard';
+    case 1: return 'DrawCard';
+    case 2: return 'GameOver';
+    case 3: return 'Skip';
+    case 4: return 'Reverse';
+    case 5: return 'DrawTwo';
+    case 6: return 'ChooseColor';
+    default: return 'Unknown';
+  }
+};
 
 interface GameOverInfo {
   winnerId: string;
   isGameOver: boolean;
+}
+
+interface ColorChoiceInfo {
+  playerId: string;
+  chosenColor: number;
 }
 
 interface UseAnimationQueueResult {
@@ -15,12 +34,14 @@ interface UseAnimationQueueResult {
   isAnimating: boolean;
   animatingCard: AnimatingCard | null;
   gameOver: GameOverInfo | null;
+  colorChoice: ColorChoiceInfo | null;
 
   // Actions
   setInitialGameState: (state: GameState) => void;
   startAnimationSequence: (events: GameEvent[], finalState: GameState, currentGameState: GameState) => void;
   onAnimationComplete: () => void;
   clearGameOver: () => void;
+  clearColorChoice: () => void;
   setGameOverTest: (winnerId: string) => void; // For testing purposes
 }
 
@@ -29,10 +50,12 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [animatingCard, setAnimatingCard] = useState<AnimatingCard | null>(null);
   const [gameOver, setGameOver] = useState<GameOverInfo | null>(null);
+  const [colorChoice, setColorChoice] = useState<ColorChoiceInfo | null>(null);
 
   const eventQueueRef = useRef<GameEvent[]>([]);
   const pendingGameStateRef = useRef<GameState | null>(null);
   const currentEventRef = useRef<GameEvent | null>(null);
+  const isSchedulingNextEventRef = useRef(false);
 
   const getPlayerPosition = useCallback((playerId: string, players: GameState['players']): PlayerPosition => {
     const humanIndex = players.findIndex(p => p.isHuman);
@@ -100,14 +123,14 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
   }, []);
 
   const processNextEvent = useCallback(() => {
-    console.log('🔄 processNextEvent called, queue length:', eventQueueRef.current.length);
+    console.log('🔄 processNextEvent - Queue length:', eventQueueRef.current.length);
 
     if (eventQueueRef.current.length === 0) {
-      // All events processed
-      console.log('✅ All events processed, finishing animation sequence');
+      console.log('✅ All events processed');
       setIsAnimating(false);
       setAnimatingCard(null);
       currentEventRef.current = null;
+      isSchedulingNextEventRef.current = false; // Reset guard
 
       if (pendingGameStateRef.current) {
         console.log('📊 Applying final game state');
@@ -120,11 +143,14 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     const event = eventQueueRef.current.shift()!;
     currentEventRef.current = event;
 
-    console.log('🎯 Processing event:', {
-      type: event.eventType === 0 ? 'PlayCard' : event.eventType === 1 ? 'DrawCard' : 'GameOver',
-      playerId: event.playerId,
-      cardIdx: event.cardIdx,
-    });
+    const player = pendingGameStateRef.current?.players.find(p => p.id === event.playerId);
+    const playerName = player?.name || event.playerId;
+    const card = event.card || (player && player.cards.length > event.cardIdx ? player.cards[event.cardIdx] : null);
+
+    const eventTypeName = getEventTypeName(event.eventType);
+    const cardName = getCardName(card);
+
+    console.log(`🎯 Processing: ${eventTypeName} - ${playerName} - ${cardName}`);
 
     setGameState(currentState => {
       if (!currentState) return currentState;
@@ -135,6 +161,8 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
         const player = currentState.players.find(p => p.id === event.playerId);
         if (card && player) {
           const position = getPlayerPosition(event.playerId, currentState.players);
+          console.log(`🃏 Setup PlayCard animation: ${playerName} -> Discard`);
+
           setAnimatingCard({
             playerId: event.playerId,
             cardIndex: event.cardIdx,
@@ -149,18 +177,10 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
         const player = currentState.players.find(p => p.id === event.playerId);
         if (player) {
           const position = getPlayerPosition(event.playerId, currentState.players);
-          const targetIndex = player.cardCount; // This will be the NEW card's index
-
-          // Use real card info from event if available (human player), otherwise use dummy card (bots)
+          const targetIndex = player.cardCount;
           const card: Card = event.card || { id: '', color: 0, value: 0 };
 
-          console.log('Setting up DrawCard animation:', {
-            position,
-            targetIndex,
-            currentCardCount: player.cardCount,
-            hasRealCard: !!event.card,
-            card,
-          });
+          console.log(`🎴 Setup DrawCard animation: Deck -> ${playerName} (position ${targetIndex})`);
 
           setAnimatingCard({
             playerId: event.playerId,
@@ -172,39 +192,72 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
           });
         }
       } else if (event.eventType === 2) {
+        // GameOver: no animation, just set state
+        console.log(`🎊 GameOver - Winner: ${playerName}`);
         setGameOver({
           winnerId: event.playerId,
           isGameOver: true,
         });
 
-        setTimeout(() => processNextEvent(), ANIMATION_DELAY);
+        if (!isSchedulingNextEventRef.current) {
+          isSchedulingNextEventRef.current = true;
+          setTimeout(() => {
+            isSchedulingNextEventRef.current = false;
+            processNextEvent();
+          }, ANIMATION_DELAY);
+        }
+      } else if (event.eventType === 6) {
+        // ChooseColor: show color picker dialog
+        const chosenColor = event.color ?? 0;
+        console.log(`🎨 ${playerName} chose color: ${chosenColor}`);
+
+        setColorChoice({
+          playerId: event.playerId,
+          chosenColor,
+        });
+
+        if (!isSchedulingNextEventRef.current) {
+          isSchedulingNextEventRef.current = true;
+          setTimeout(() => {
+            isSchedulingNextEventRef.current = false;
+            processNextEvent();
+          }, COLOR_PICKER_DELAY); // Longer delay for color picker
+        }
       } else {
-        const newState = applyEventToState(event, currentState, null);
-        setTimeout(() => processNextEvent(), ANIMATION_DELAY);
-        return newState;
+        // Skip/Reverse/DrawTwo: no animation
+        console.log(`⏭️  ${eventTypeName} - No animation, continuing...`);
+
+        if (!isSchedulingNextEventRef.current) {
+          isSchedulingNextEventRef.current = true;
+          setTimeout(() => {
+            isSchedulingNextEventRef.current = false;
+            processNextEvent();
+          }, ANIMATION_DELAY);
+        }
       }
 
       return currentState;
     });
-  }, [getCardForEvent, getPlayerPosition, applyEventToState]);
+  }, [getCardForEvent, getPlayerPosition]);
 
   const onAnimationComplete = useCallback(() => {
     const event = currentEventRef.current;
 
-    console.log('🏁 Animation complete for event:', event?.eventType === 0 ? 'PlayCard' : 'DrawCard');
+    if (!event) return;
+
+    console.log(`🏁 Animation complete: ${getEventTypeName(event.eventType)}`);
 
     setGameState(currentState => {
-      if (!currentState || !event) return currentState;
+      if (!currentState) return currentState;
 
       const card = animatingCard?.card || null;
-
       return applyEventToState(event, currentState, card);
     });
 
     setAnimatingCard(null);
     currentEventRef.current = null;
 
-    console.log('⏭️  Scheduling next event...');
+    console.log('⏭️  Next event in', ANIMATION_DELAY, 'ms');
     setTimeout(() => {
       processNextEvent();
     }, ANIMATION_DELAY);
@@ -218,6 +271,10 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     setGameOver(null);
   }, []);
 
+  const clearColorChoice = useCallback(() => {
+    setColorChoice(null);
+  }, []);
+
   const setGameOverTest = useCallback((winnerId: string) => {
     setGameOver({
       winnerId,
@@ -225,22 +282,44 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     });
   }, []);
 
+  const getCardName = (card: Card | null): string => {
+    if (!card) return 'Unknown';
+
+    const colorNames = ['Red', 'Blue', 'Green', 'Yellow', 'Wild'];
+    const colorName = colorNames[card.color] || 'Unknown';
+
+    if (card.color === 4) {
+      return card.value === 13 ? 'Wild' : 'Wild Draw Four';
+    }
+
+    const valueNames: { [key: number]: string } = {
+      10: 'Skip',
+      11: 'Reverse',
+      12: 'Draw Two',
+    };
+
+    const valueName = valueNames[card.value] ?? card.value.toString();
+    return `${colorName} ${valueName}`;
+  };
+
   const startAnimationSequence = useCallback((
     events: GameEvent[],
     finalState: GameState,
     currentGameState: GameState
   ) => {
-    console.log('🎬 Starting animation sequence:', {
-      eventsCount: events.length,
-      events: events.map(e => ({
-        type: e.eventType === 0 ? 'PlayCard' : e.eventType === 1 ? 'DrawCard' : 'Unknown',
-        playerId: e.playerId,
-        cardIdx: e.cardIdx,
-      })),
+    console.log('🎬 Starting animation sequence');
+    console.log(`📋 Total events: ${events.length}`);
+
+    events.forEach((e, idx) => {
+      const player = currentGameState.players.find(p => p.id === e.playerId);
+      const playerName = player?.name || 'Unknown';
+      const card = e.card || (player && player.cards.length > e.cardIdx ? player.cards[e.cardIdx] : null);
+
+      console.log(`  ${idx + 1}. ${getEventTypeName(e.eventType)} - ${playerName} - ${getCardName(card)}`);
     });
 
     if (events.length === 0) {
-      console.log('⚠️ No events to animate, updating state directly');
+      console.log('⚠️  No events to animate');
       setGameState(finalState);
       return;
     }
@@ -250,7 +329,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     setIsAnimating(true);
     setGameState(currentGameState);
 
-    console.log('▶️ Processing first event...');
+    console.log('▶️  Processing first event...');
     processNextEvent();
   }, [processNextEvent]);
 
@@ -259,10 +338,12 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     isAnimating,
     animatingCard,
     gameOver,
+    colorChoice,
     setInitialGameState,
     startAnimationSequence,
     onAnimationComplete,
     clearGameOver,
+    clearColorChoice,
     setGameOverTest,
   };
 };

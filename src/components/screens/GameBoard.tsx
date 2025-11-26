@@ -5,6 +5,7 @@ import { GameInfo } from '../game/GameInfo';
 import { AnimationLayer } from '../game/AnimationLayer';
 import { AnimationTestPanel } from '../dev/AnimationTestPanel';
 import { GameDialog } from '../game/GameDialog';
+import { ColorPickerDialog } from '../game/ColorPickerDialog';
 import { useGame } from '../../context/GameContext';
 import { useState } from 'react';
 import type { AnimatingCard } from '../../types/animation';
@@ -14,7 +15,7 @@ interface GameBoardProps {
 }
 
 export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
-  const { gameState, isLoading, error, playCard, drawCard, isAnimating, animatingCard, onAnimationComplete, gameOver, resetGame, setGameOverTest } = useGame();
+  const { gameState, isLoading, error, playCard, drawCard, isAnimating, animatingCard, onAnimationComplete, gameOver, colorPicker, onColorSelect, resetGame, setGameOverTest, setColorPickerTest } = useGame();
   const [testAnimatingCard, setTestAnimatingCard] = useState<AnimatingCard | null>(null);
 
   const handleCardClick = async (cardId: string) => {
@@ -68,6 +69,11 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
 
     // Trigger game over using the test function
     setGameOverTest(mockWinnerId);
+  };
+
+  const handleTestColorPicker = (isInteractive: boolean) => {
+    console.log('Test Color Picker triggered:', { isInteractive });
+    setColorPickerTest(isInteractive);
   };
 
   const handleBackToLandingClick = () => {
@@ -165,6 +171,15 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
       ]}
     />
 
+    {/* Color Picker Dialog */}
+    <ColorPickerDialog
+      isOpen={colorPicker.isOpen}
+      onColorSelect={onColorSelect}
+      message={colorPicker.isInteractive ? 'Choose a color' : 'Opponent chose a color'}
+      isInteractive={colorPicker.isInteractive}
+      selectedColor={colorPicker.selectedColor}
+    />
+
     {/* Error Message */}
     {error && (
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[150]">
@@ -180,6 +195,7 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
       <AnimationTestPanel
         onTriggerAnimation={handleTestAnimation}
         onTriggerGameOver={handleTestGameOver}
+        onTriggerColorPicker={handleTestColorPicker}
       />
     )}
 

@@ -32,8 +32,8 @@ export interface GameData {
   gameState: GameState;
 }
 
-export type GameEventType = 0 | 1 | 2;
-// 0=PlayCard, 1=DrawCard, 2=GameOver
+export type GameEventType = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+// 0=PlayCard, 1=DrawCard, 2=GameOver, 3=Skip, 4=Reverse, 5=DrawTwo, 6=ChooseColor
 
 export interface GameEvent {
   eventType: GameEventType;
@@ -41,4 +41,5 @@ export interface GameEvent {
   playerId: string;
   cardIdx: number;
   card: Card | null;
+  color?: number | null; // Untuk ChooseColor event
 }
