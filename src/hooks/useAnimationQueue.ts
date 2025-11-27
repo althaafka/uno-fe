@@ -37,6 +37,7 @@ interface UseAnimationQueueResult {
   animatingCard: AnimatingCard | null;
   gameOver: GameOverInfo | null;
   colorChoice: ColorChoiceInfo | null;
+  unoEvent: { playerId: string } | null;
 
   // Actions
   setInitialGameState: (state: GameState) => void;
@@ -44,6 +45,7 @@ interface UseAnimationQueueResult {
   onAnimationComplete: () => void;
   clearGameOver: () => void;
   clearColorChoice: () => void;
+  clearUnoEvent: () => void;
   setGameOverTest: (winnerId: string) => void; // For testing purposes
 }
 
@@ -53,6 +55,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
   const [animatingCard, setAnimatingCard] = useState<AnimatingCard | null>(null);
   const [gameOver, setGameOver] = useState<GameOverInfo | null>(null);
   const [colorChoice, setColorChoice] = useState<ColorChoiceInfo | null>(null);
+  const [unoEvent, setUnoEvent] = useState<{ playerId: string } | null>(null);
 
   const eventQueueRef = useRef<GameEvent[]>([]);
   const pendingGameStateRef = useRef<GameState | null>(null);
@@ -82,7 +85,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     return null;
   }, []);
 
-  const applyEventToState = useCallback((event: GameEvent, state: GameState, card: Card | null): GameState => {
+  const applyEventToState = useCallback((event: GameEvent, state: GameState, card: Card | null, nextEvent: GameEvent | null): GameState => {
     const newState = JSON.parse(JSON.stringify(state)) as GameState;
 
     switch (event.eventType) {
@@ -119,6 +122,9 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
       case 2: // GameOver
         break;
 
+      case 3: // Skip
+        break;
+
       case 4: // Reverse
         newState.direction = newState.direction === 0 ? 1 : 0;
         break;
@@ -128,6 +134,16 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
           newState.currentColor = event.color as 0 | 1 | 2 | 3 | 4;
         }
         break;
+
+      case 8: // UNO called
+        break;
+      case 9: // Failed to call UNO
+        break;
+    }
+
+    // Update current player based on next event in queue
+    if (nextEvent) {
+      newState.currentPlayerId = nextEvent.playerId;
     }
 
     return newState;
@@ -222,8 +238,8 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
         const chosenColor = event.color ?? 0;
         console.log(`🎨 ${playerName} chose color: ${chosenColor}`);
 
-        // Apply state changes immediately for ChooseColor
-        const updatedState = applyEventToState(event, currentState, null);
+        const nextEvent = eventQueueRef.current[0] || null;
+        const updatedState = applyEventToState(event, currentState, null, nextEvent);
 
         setColorChoice({
           playerId: event.playerId,
@@ -235,16 +251,30 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
           setTimeout(() => {
             isSchedulingNextEventRef.current = false;
             processNextEvent();
-          }, COLOR_PICKER_DELAY); // Longer delay for color picker
+          }, COLOR_PICKER_DELAY);
         }
 
         return updatedState;
+      } else if (event.eventType === 8) {
+        console.log(`✋ ${playerName} called UNO!`);
+
+        setUnoEvent({
+          playerId: event.playerId,
+        });
+
+        if (!isSchedulingNextEventRef.current) {
+          isSchedulingNextEventRef.current = true;
+          setTimeout(() => {
+            isSchedulingNextEventRef.current = false;
+            processNextEvent();
+          }, ANIMATION_DELAY);
+        }
       } else {
         // Skip/Reverse/DrawTwo: no animation, apply state changes immediately
         console.log(`⏭️  ${eventTypeName} - No animation, continuing...`);
 
-        // Apply state changes for events without animation
-        const updatedState = applyEventToState(event, currentState, null);
+        const nextEvent = eventQueueRef.current[0] || null;
+        const updatedState = applyEventToState(event, currentState, null, nextEvent);
 
         if (!isSchedulingNextEventRef.current) {
           isSchedulingNextEventRef.current = true;
@@ -272,7 +302,8 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
       if (!currentState) return currentState;
 
       const card = animatingCard?.card || null;
-      return applyEventToState(event, currentState, card);
+      const nextEvent = eventQueueRef.current[0] || null;
+      return applyEventToState(event, currentState, card, nextEvent);
     });
 
     setAnimatingCard(null);
@@ -294,6 +325,10 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
 
   const clearColorChoice = useCallback(() => {
     setColorChoice(null);
+  }, []);
+
+  const clearUnoEvent = useCallback(() => {
+    setUnoEvent(null);
   }, []);
 
   const setGameOverTest = useCallback((winnerId: string) => {
@@ -360,11 +395,13 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     animatingCard,
     gameOver,
     colorChoice,
+    unoEvent,
     setInitialGameState,
     startAnimationSequence,
     onAnimationComplete,
     clearGameOver,
     clearColorChoice,
+    clearUnoEvent,
     setGameOverTest,
   };
 };

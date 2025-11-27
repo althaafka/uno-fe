@@ -103,15 +103,6 @@ export const ColorPickerDialog = ({
                       >
                         <div className={`w-10 h-10 rounded-lg shadow-lg ${option.bgColor} border-3 border-white shadow-md transform rotate-45`} />
                         <span className="drop-shadow-md">{option.name}</span>
-                        {isSelected && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="absolute -top-2 -right-2 bg-white rounded-full w-8 h-8 flex items-center justify-center"
-                          >
-                            <span className="text-2xl">✓</span>
-                          </motion.div>
-                        )}
                       </motion.button>
                     );
                   })}
