@@ -20,7 +20,9 @@ export const GameInfo = ({direction, currentColor, onUnoClick}: GameInfoProps) =
         className="w-10 h-10 rounded-lg shadow-lg border-3 border-white bg-[#2C3E50] transform rotate-45 flex items-center justify-center"
         title={direction === 0 ? 'Clockwise' : 'Counter-clockwise'}
       >
-        <span className="text-2xl text-white">↻</span>
+        <span className="text-2xl text-white transform -rotate-45">
+          {direction === 0 ? '↻' : '↺'}
+        </span>
       </div>
 
       {/*Current Color*/}

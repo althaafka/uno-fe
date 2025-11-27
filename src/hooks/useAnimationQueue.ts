@@ -117,6 +117,15 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
       case 2: // GameOver
         break;
 
+      case 4: // Reverse
+        newState.direction = newState.direction === 0 ? 1 : 0;
+        break;
+
+      case 6: // ChooseColor
+        if (event.color !== undefined && event.color !== null) {
+          newState.currentColor = event.color as 0 | 1 | 2 | 3 | 4;
+        }
+        break;
     }
 
     return newState;
@@ -211,6 +220,9 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
         const chosenColor = event.color ?? 0;
         console.log(`🎨 ${playerName} chose color: ${chosenColor}`);
 
+        // Apply state changes immediately for ChooseColor
+        const updatedState = applyEventToState(event, currentState, null);
+
         setColorChoice({
           playerId: event.playerId,
           chosenColor,
@@ -223,9 +235,14 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
             processNextEvent();
           }, COLOR_PICKER_DELAY); // Longer delay for color picker
         }
+
+        return updatedState;
       } else {
-        // Skip/Reverse/DrawTwo: no animation
+        // Skip/Reverse/DrawTwo: no animation, apply state changes immediately
         console.log(`⏭️  ${eventTypeName} - No animation, continuing...`);
+
+        // Apply state changes for events without animation
+        const updatedState = applyEventToState(event, currentState, null);
 
         if (!isSchedulingNextEventRef.current) {
           isSchedulingNextEventRef.current = true;
@@ -234,11 +251,13 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
             processNextEvent();
           }, ANIMATION_DELAY);
         }
+
+        return updatedState;
       }
 
       return currentState;
     });
-  }, [getCardForEvent, getPlayerPosition]);
+  }, [getCardForEvent, getPlayerPosition, applyEventToState]);
 
   const onAnimationComplete = useCallback(() => {
     const event = currentEventRef.current;
