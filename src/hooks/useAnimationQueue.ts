@@ -14,7 +14,9 @@ const getEventTypeName = (type: number): string => {
     case 4: return 'Reverse';
     case 5: return 'DrawTwo';
     case 6: return 'ChooseColor';
-    default: return 'Unknown';
+    case 8: return 'uno';
+    case 9: return 'failed to call uno';
+    default: return type.toString();
   }
 };
 

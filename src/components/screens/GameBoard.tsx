@@ -15,7 +15,7 @@ interface GameBoardProps {
 }
 
 export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
-  const { gameState, isLoading, error, playCard, drawCard, isAnimating, animatingCard, onAnimationComplete, gameOver, colorPicker, onColorSelect, resetGame, setGameOverTest, setColorPickerTest } = useGame();
+  const { gameState, isLoading, error, playCard, drawCard, isAnimating, animatingCard, onAnimationComplete, gameOver, colorPicker, onColorSelect, onUnoCall, resetGame, setGameOverTest, setColorPickerTest } = useGame();
   const [testAnimatingCard, setTestAnimatingCard] = useState<AnimatingCard | null>(null);
 
   const handleCardClick = async (cardId: string) => {
@@ -293,7 +293,7 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
       <GameInfo
         direction={gameState.direction}
         currentColor={gameState.currentColor}
-        onUnoClick={() => {}}
+        onUnoClick={onUnoCall}
       />
     </div>
 

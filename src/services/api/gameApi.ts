@@ -36,7 +36,7 @@ export const gameApi = {
     return response.json();
   },
 
-  playCard: async (gameId: string, playerId: string, cardId: string, chosenColor?: number): Promise<PlayCardResponse> => {
+  playCard: async (gameId: string, playerId: string, cardId: string, chosenColor?: number, calledUno?: boolean): Promise<PlayCardResponse> => {
     const response = await fetch(`${API_BASE_URL}/Game/${gameId}/play`, {
       method: 'POST',
       headers: {
@@ -46,6 +46,7 @@ export const gameApi = {
         playerId,
         cardId,
         chosenColor: chosenColor !== undefined ? chosenColor : null,
+        calledUno: calledUno ?? false,
       }),
     });
 

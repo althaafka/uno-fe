@@ -35,10 +35,11 @@ export const GameInfo = ({direction, currentColor, onUnoClick}: GameInfoProps) =
       {/* Uno Button*/}
       <button
         onClick={onUnoClick}
-        className="w-10 h-10 rounded-lg shadow-lg border-3 border-white transform rotate-45 flex items-center justify-center"
+        className="w-10 h-10 rounded-lg shadow-lg border-3 border-white transform rotate-45 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
         style={{
           background: CARD_COLORS[4]
         }}
+        title="Call UNO!"
       >
         <span className="transform -rotate-45 text-xs font-bold text-white">UNO</span>
       </button>

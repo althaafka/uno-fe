@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import type { Card, GameData, GameState } from '../types/game';
 import type { AnimatingCard } from '../types/animation';
 import { gameApi } from '../services/api/gameApi';
@@ -38,6 +38,7 @@ interface GameContextValue {
   resetGame: () => void;
   onAnimationComplete: () => void;
   onColorSelect: (color: number) => Promise<void>;
+  onUnoCall: () => void;
   setGameOverTest: (winnerId: string) => void; // For testing
   setColorPickerTest: (isInteractive: boolean) => void; // For testing
 }
@@ -58,6 +59,10 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     isInteractive: false,
     selectedColor: undefined,
   });
+  const [hasCalledUno, setHasCalledUno] = useState(false);
+  const [isWaitingForUno, setIsWaitingForUno] = useState(false);
+  const unoTimerRef = useRef<number | null>(null);
+  const pendingCardRef = useRef<{cardId: string, chosenColor?: number} | null>(null);
 
   const {
     gameState,
@@ -121,6 +126,54 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     }
   }, [setInitialGameState]);
 
+  const onUnoCall = useCallback(() => {
+    if (!isWaitingForUno) {
+      setHasCalledUno(true);
+      console.log('✋ Player called UNO! (early)');
+      return;
+    }
+
+    if (unoTimerRef.current) {
+      clearTimeout(unoTimerRef.current);
+      unoTimerRef.current = null;
+    }
+
+    setIsWaitingForUno(false);
+    setHasCalledUno(false);
+
+    const pending = pendingCardRef.current;
+    if (!pending || !gameId || !gameState) {
+      return;
+    }
+
+    const humanPlayer = gameState.players.find(p => p.isHuman);
+    if (!humanPlayer) {
+      return;
+    }
+
+    console.log('✋ Player called UNO! (during timer)');
+    setError(null);
+
+    gameApi.playCard(gameId, humanPlayer.id, pending.cardId, pending.chosenColor, true)
+      .then(response => {
+        if (response.success) {
+          console.log('Play card with UNO call response:', response);
+          startAnimationSequence(response.events, response.gameState, gameState);
+        } else {
+          console.log("Play card error:", response);
+          throw new Error(response.message);
+        }
+      })
+      .catch(err => {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to play card';
+        setError(errorMessage);
+        console.error('Error playing card:', err);
+      })
+      .finally(() => {
+        pendingCardRef.current = null;
+      });
+  }, [isWaitingForUno, gameId, gameState, startAnimationSequence]);
+
   const playCard = useCallback(async (cardId: string) => {
     if (!gameId || !gameState) {
       throw new Error('No active game');
@@ -156,10 +209,50 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       return;
     }
 
+    const willHaveOneCard = humanPlayer.cards.length === 2;
+
+    if (willHaveOneCard) {
+      setIsWaitingForUno(true);
+      pendingCardRef.current = { cardId };
+
+      console.log('⏳ Waiting for UNO call... (1.5s)');
+
+      unoTimerRef.current = window.setTimeout(() => {
+        setIsWaitingForUno(false);
+        const calledUno = hasCalledUno;
+        setHasCalledUno(false);
+
+        console.log(`⏰ Timer expired - calledUno: ${calledUno}`);
+
+        setError(null);
+
+        gameApi.playCard(gameId, humanPlayer.id, cardId, undefined, calledUno)
+          .then(response => {
+            if (response.success) {
+              console.log('Play card response:', response, `calledUno: ${calledUno}`);
+              startAnimationSequence(response.events, response.gameState, gameState);
+            } else {
+              console.log("Play card error:", response);
+              throw new Error(response.message);
+            }
+          })
+          .catch(err => {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to play card';
+            setError(errorMessage);
+            console.error('Error playing card:', err);
+          })
+          .finally(() => {
+            pendingCardRef.current = null;
+          });
+      }, 1500);
+
+      return;
+    }
+
     setError(null);
 
     try {
-      const response = await gameApi.playCard(gameId, humanPlayer.id, cardId);
+      const response = await gameApi.playCard(gameId, humanPlayer.id, cardId, undefined, false);
       if (response.success) {
         console.log('Play card response:', response);
         startAnimationSequence(response.events, response.gameState, gameState);
@@ -173,7 +266,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       console.error('Error playing card:', err);
       throw err;
     }
-  }, [gameId, gameState, isAnimating, startAnimationSequence]);
+  }, [gameId, gameState, isAnimating, hasCalledUno, startAnimationSequence]);
 
   const onColorSelect = useCallback(async (color: number) => {
     const currentCardId = colorPicker.cardId;
@@ -195,10 +288,50 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       return;
     }
 
+    const willHaveOneCard = humanPlayer.cards.length === 1;
+
+    if (willHaveOneCard) {
+      setIsWaitingForUno(true);
+      pendingCardRef.current = { cardId: currentCardId, chosenColor: color };
+
+      console.log('⏳ Waiting for UNO call (Wild)... (1.5s)');
+
+      unoTimerRef.current = window.setTimeout(() => {
+        setIsWaitingForUno(false);
+        const calledUno = hasCalledUno;
+        setHasCalledUno(false);
+
+        console.log(`⏰ Timer expired (Wild) - calledUno: ${calledUno}`);
+
+        setError(null);
+
+        gameApi.playCard(gameId, humanPlayer.id, currentCardId, color, calledUno)
+          .then(response => {
+            if (response.success) {
+              console.log('Play card with color response:', response, `calledUno: ${calledUno}`);
+              startAnimationSequence(response.events, response.gameState, gameState);
+            } else {
+              console.log("Play card error:", response);
+              throw new Error(response.message);
+            }
+          })
+          .catch(err => {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to play card';
+            setError(errorMessage);
+            console.error('Error playing card:', err);
+          })
+          .finally(() => {
+            pendingCardRef.current = null;
+          });
+      }, 1500);
+
+      return;
+    }
+
     setError(null);
 
     try {
-      const response = await gameApi.playCard(gameId, humanPlayer.id, currentCardId, color);
+      const response = await gameApi.playCard(gameId, humanPlayer.id, currentCardId, color, false);
       if (response.success) {
         console.log('Play card with color response:', response);
         startAnimationSequence(response.events, response.gameState, gameState);
@@ -212,7 +345,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       console.error('Error playing card:', err);
       throw err;
     }
-  }, [gameId, gameState, colorPicker.cardId, startAnimationSequence]);
+  }, [gameId, gameState, colorPicker.cardId, hasCalledUno, startAnimationSequence]);
 
   const drawCard = useCallback(async () => {
     if (!gameId || !gameState) {
@@ -247,10 +380,18 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   }, [gameId, gameState, isAnimating, startAnimationSequence]);
 
   const resetGame = useCallback(() => {
+    if (unoTimerRef.current) {
+      clearTimeout(unoTimerRef.current);
+      unoTimerRef.current = null;
+    }
+
     setGameId(null);
     setInitialGameState(null as unknown as GameState);
     setError(null);
     clearGameOver();
+    setHasCalledUno(false);
+    setIsWaitingForUno(false);
+    pendingCardRef.current = null;
     setColorPicker({
       isOpen: false,
       cardId: null,
@@ -295,6 +436,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     resetGame,
     onAnimationComplete,
     onColorSelect,
+    onUnoCall,
     setGameOverTest,
     setColorPickerTest,
   };
