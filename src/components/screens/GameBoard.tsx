@@ -15,7 +15,25 @@ interface GameBoardProps {
 }
 
 export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
-  const { gameState, isLoading, error, playCard, drawCard, isAnimating, animatingCard, onAnimationComplete, gameOver, colorPicker, onColorSelect, onUnoCall, resetGame, setGameOverTest, setColorPickerTest, unoEvent } = useGame();
+  const { 
+    gameState, 
+    isLoading, 
+    error, 
+    playCard, 
+    drawCard, 
+    isAnimating, 
+    animatingCard, 
+    onAnimationComplete, 
+    gameOver, 
+    colorPicker, 
+    onColorSelect, 
+    onUnoCall, 
+    resetGame, 
+    setGameOverTest, 
+    setColorPickerTest,
+    unoEvent
+  } = useGame();
+  
   const [testAnimatingCard, setTestAnimatingCard] = useState<AnimatingCard | null>(null);
 
   const handleCardClick = async (cardId: string) => {
@@ -199,6 +217,12 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
       />
     )} */}
 
+    <div className="absolute rounded-b-4xl top-0 left-1/2 -translate-x-1/2 bg-uno-dark-purple opacity-50 h-[170px] w-[800px]"></div>
+    <div className="absolute rounded-t-4xl bottom-0 left-1/2 -translate-x-1/2 bg-uno-dark-purple opacity-50 h-[170px] w-[800px]"></div>
+    <div className="absolute rounded-r-4xl left-0 top-1/2 -translate-y-1/2 bg-uno-dark-purple opacity-50 h-[580px] w-[170px]"></div>
+    <div className="absolute rounded-l-4xl right-0 top-1/2 -translate-y-1/2 bg-uno-dark-purple opacity-50 h-[580px] w-[170px]"></div>
+
+
     {/* Player Top*/}
     <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-start gap-6">
       <PlayerAvatar
@@ -300,7 +324,6 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
         onUnoClick={onUnoCall}
       />
     </div>
-
 
   </div>)
 }

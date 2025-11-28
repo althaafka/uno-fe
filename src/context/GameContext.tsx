@@ -181,7 +181,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       throw new Error('No active game');
     }
 
-    // Don't allow playing cards during animation
+
     if (isAnimating) {
       return;
     }
