@@ -129,7 +129,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   const onUnoCall = useCallback(() => {
     if (!isWaitingForUno) {
       setHasCalledUno(true);
-      console.log('✋ Player called UNO! (early)');
+      console.log('Player called UNO! (early)');
       return;
     }
 
@@ -151,7 +151,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       return;
     }
 
-    console.log('✋ Player called UNO! (during timer)');
+    console.log('Player called UNO! (during timer)');
     setError(null);
 
     gameApi.playCard(gameId, humanPlayer.id, pending.cardId, pending.chosenColor, true)
@@ -215,14 +215,14 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       setIsWaitingForUno(true);
       pendingCardRef.current = { cardId };
 
-      console.log('⏳ Waiting for UNO call... (1.5s)');
+      console.log('Waiting for UNO call... (1.5s)');
 
       unoTimerRef.current = window.setTimeout(() => {
         setIsWaitingForUno(false);
         const calledUno = hasCalledUno;
         setHasCalledUno(false);
 
-        console.log(`⏰ Timer expired - calledUno: ${calledUno}`);
+        console.log(`Timer expired - calledUno: ${calledUno}`);
 
         setError(null);
 
@@ -294,14 +294,14 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       setIsWaitingForUno(true);
       pendingCardRef.current = { cardId: currentCardId, chosenColor: color };
 
-      console.log('⏳ Waiting for UNO call (Wild)... (1.5s)');
+      console.log('Waiting for UNO call (Wild)... (1.5s)');
 
       unoTimerRef.current = window.setTimeout(() => {
         setIsWaitingForUno(false);
         const calledUno = hasCalledUno;
         setHasCalledUno(false);
 
-        console.log(`⏰ Timer expired (Wild) - calledUno: ${calledUno}`);
+        console.log(`Timer expired (Wild) - calledUno: ${calledUno}`);
 
         setError(null);
 
