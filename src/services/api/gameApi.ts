@@ -50,12 +50,14 @@ export const gameApi = {
       }),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      console.log("Error:", await response.json())
+      console.log("Error:", data)
       throw new Error(`Failed to play card: ${response.status}`);
     }
 
-    return response.json();
+    return data;
   },
 
   drawCard: async (gameId: string, playerId: string): Promise<DrawCardResponse> => {
@@ -75,6 +77,7 @@ export const gameApi = {
     }
 
     const data = await response.json();
+    console.log("Draw card response:", data);
 
     if (!data.success) {
       throw new Error(data.message || 'Failed to draw card');

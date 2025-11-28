@@ -191,13 +191,13 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
     )}
 
     {/* Dev Tool - Animation Test Panel */}
-    {import.meta.env.DEV && (
+    {/* {import.meta.env.DEV && (
       <AnimationTestPanel
         onTriggerAnimation={handleTestAnimation}
         onTriggerGameOver={handleTestGameOver}
         onTriggerColorPicker={handleTestColorPicker}
       />
-    )}
+    )} */}
 
     {/* Player Top*/}
     <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-start gap-6">
