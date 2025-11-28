@@ -264,6 +264,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
         if (!isSchedulingNextEventRef.current) {
           isSchedulingNextEventRef.current = true;
           setTimeout(() => {
+            setUnoEvent(null);
             isSchedulingNextEventRef.current = false;
             processNextEvent();
           }, ANIMATION_DELAY);

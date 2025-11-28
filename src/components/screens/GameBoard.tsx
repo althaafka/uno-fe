@@ -15,7 +15,7 @@ interface GameBoardProps {
 }
 
 export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
-  const { gameState, isLoading, error, playCard, drawCard, isAnimating, animatingCard, onAnimationComplete, gameOver, colorPicker, onColorSelect, onUnoCall, resetGame, setGameOverTest, setColorPickerTest } = useGame();
+  const { gameState, isLoading, error, playCard, drawCard, isAnimating, animatingCard, onAnimationComplete, gameOver, colorPicker, onColorSelect, onUnoCall, resetGame, setGameOverTest, setColorPickerTest, unoEvent } = useGame();
   const [testAnimatingCard, setTestAnimatingCard] = useState<AnimatingCard | null>(null);
 
   const handleCardClick = async (cardId: string) => {
@@ -205,6 +205,7 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
         name={player3.name}
         cardCount={player3.cardCount}
         isCurrentPlayer={gameState.currentPlayerId === player3.id}
+        showUnoBalloon={unoEvent?.playerId == player3.id}
       />
       <CardStack
         cardCount={player3.cardCount}
@@ -220,6 +221,7 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
         name={player4.name}
         cardCount={player4.cardCount}
         isCurrentPlayer={gameState.currentPlayerId === player4.id}
+        showUnoBalloon={unoEvent?.playerId == player4.id}
       />
       <CardStack
         cardCount={player4.cardCount}
@@ -243,6 +245,7 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
         name={player2.name}
         cardCount={player2.cardCount}
         isCurrentPlayer={gameState.currentPlayerId === player2.id}
+        showUnoBalloon={unoEvent?.playerId == player2.id}
       />
     </div>
 
@@ -260,6 +263,7 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
         name={humanPlayer.name}
         cardCount={humanPlayer.cardCount}
         isCurrentPlayer={gameState.currentPlayerId === humanPlayer.id}
+        showUnoBalloon={unoEvent?.playerId == humanPlayer.id}
       />
     </div>
 

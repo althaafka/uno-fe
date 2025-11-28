@@ -17,6 +17,21 @@ export const PlayerAvatar = ({
   return (
     <div className={`flex flex-col items-center gap-2`}>
       <div className="relative">
+        <AnimatePresence>
+          {showUnoBalloon && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: -15 }}
+              exit={{ scale: 0, opacity: 0, y: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 15 }}
+              
+              className="absolute h-7 w-14 -bottom-6 -right-6 z-50 bg-red-600 text-white text-m font-black rounded-xl border-2 border-white shadow-xl flex items-center justify-center whitespace-nowrap"
+            >
+              UNO!
+              <div className="absolute -top-1 left-2 w-2 h-2 bg-red-600 transform rotate-45 border-t-2 border-l-2 border-white"></div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Avatar with pulsing animation */}
         <motion.div

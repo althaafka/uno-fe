@@ -32,6 +32,7 @@ interface GameContextValue {
   animatingCard: AnimatingCard | null;
   gameOver: GameOverInfo | null;
   colorPicker: ColorPickerInfo;
+  unoEvent: {playerId: string} | null;
   startGame: () => Promise<void>;
   playCard: (cardId: string) => Promise<void>;
   drawCard: () => Promise<void>;
@@ -39,8 +40,8 @@ interface GameContextValue {
   onAnimationComplete: () => void;
   onColorSelect: (color: number) => Promise<void>;
   onUnoCall: () => void;
-  setGameOverTest: (winnerId: string) => void; // For testing
-  setColorPickerTest: (isInteractive: boolean) => void; // For testing
+  setGameOverTest: (winnerId: string) => void;
+  setColorPickerTest: (isInteractive: boolean) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -70,6 +71,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     animatingCard,
     gameOver,
     colorChoice,
+    unoEvent,
     setInitialGameState,
     startAnimationSequence,
     onAnimationComplete,
@@ -430,6 +432,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     animatingCard,
     gameOver,
     colorPicker,
+    unoEvent,
     startGame,
     playCard,
     drawCard,
