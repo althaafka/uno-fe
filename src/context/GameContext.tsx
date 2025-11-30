@@ -290,7 +290,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       return;
     }
 
-    const willHaveOneCard = humanPlayer.cards.length === 1;
+    const willHaveOneCard = humanPlayer.cards.length === 2;
 
     if (willHaveOneCard) {
       setIsWaitingForUno(true);
