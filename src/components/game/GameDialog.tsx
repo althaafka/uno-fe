@@ -17,18 +17,8 @@ export interface GameDialogProps {
 
 export const GameDialog = ({ isOpen, title, message, buttons, onClose, children }: GameDialogProps) => {
   const getButtonStyles = (variant: DialogButton['variant'] = 'primary') => {
-    const baseStyles = 'px-8 py-4 h-12 w-48 rounded-xl font-bold text-lg transition-all transform hover:scale-105 active:scale-95 shadow-lg';
-
-    switch (variant) {
-      case 'primary':
-        return `${baseStyles} bg-gradient-to-r from-uno-yellow to-yellow-400 text-black hover:from-yellow-400 hover:to-uno-yellow hover:shadow-xl`;
-      case 'secondary':
-        return `${baseStyles} bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-500 hover:to-gray-600 hover:shadow-xl`;
-      case 'danger':
-        return `${baseStyles} bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-500 hover:to-red-600 hover:shadow-xl`;
-      default:
-        return `${baseStyles} bg-gradient-to-r from-uno-yellow to-yellow-400 text-black hover:from-yellow-400 hover:to-uno-yellow hover:shadow-xl`;
-    }
+    const baseStyles = 'px-10 py-2 rounded-xl font-bold text-lg transition-all transform hover:scale-105 active:scale-95 shadow-lg bg-gradient-to-b from-uno-purple to-uno-dark-purple rounded-xl font-black text-lg text-white shadow-[0_4px_0_#382f50] active:shadow-[0_2px_0_#382f50] active:translate-y-1 transition-all duration-150 hover:brightness-130 brightness-120';
+    return  baseStyles;
   };
 
   return (
@@ -38,14 +28,14 @@ export const GameDialog = ({ isOpen, title, message, buttons, onClose, children 
           {/* Backdrop with blur */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-sm z-[200]"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200]"
             onClick={onClose}
           />
 
           {/* Dialog */}
-          <div className="fixed inset-0 flex items-center justify-center z-[201] pointer-events-none p-4">
+          <div className="fixed inset-0 flex items-center justify-center z-[201] pointer-events-none p-1">
             <motion.div
               initial={{ scale: 0.5, opacity: 0, y: 100, rotateX: -15 }}
               animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
@@ -56,21 +46,18 @@ export const GameDialog = ({ isOpen, title, message, buttons, onClose, children 
                 stiffness: 300,
                 duration: 0.5
               }}
-              className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-2xl max-w-lg w-full min-h-[20rem] pointer-events-auto border-4 border-uno-yellow relative overflow-hidden flex items-center justify-center p-10"
+              className="bg-uno-purple rounded-3xl shadow-2xl max-w-lg w-full min-h-[20rem] pointer-events-auto border-4 border-white/20 relative overflow-hidden flex items-center justify-center p-10"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Decorative background elements */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-uno-yellow opacity-10 rounded-full -mr-20 -mt-20" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-uno-red opacity-10 rounded-full -ml-16 -mb-16" />
 
               {/* Content */}
-              <div className="relative z-10 flex flex-col items-center w-full gap-8">
+              <div className="relative z-10 flex flex-col items-center w-full">
                 {/* Title with enhanced styling */}
                 <motion.h2
                   initial={{ y: -20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="text-5xl font-black text-center mb-6 bg-gradient-to-r from-uno-purple to-uno-blue bg-clip-text text-transparent drop-shadow-lg"
+                  className="text-5xl font-black text-center mb-6 text-white drop-shadow-lg"
                 >
                   {title}
                 </motion.h2>
@@ -81,7 +68,7 @@ export const GameDialog = ({ isOpen, title, message, buttons, onClose, children 
                     initial={{ y: -10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="text-xl text-center text-gray-700 mb-8 font-semibold leading-relaxed"
+                    className="text-xl text-center text-white/90 mb-8 font-semibold leading-relaxed"
                   >
                     {message}
                   </motion.p>
@@ -92,7 +79,7 @@ export const GameDialog = ({ isOpen, title, message, buttons, onClose, children 
                     initial={{ y: -10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="mb-8"
+                    className="mb-8 w-full"
                   >
                     {children}
                   </motion.div>

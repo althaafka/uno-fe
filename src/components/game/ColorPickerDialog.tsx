@@ -42,7 +42,7 @@ export const ColorPickerDialog = ({
           />
 
           {/* Dialog */}
-          <div className="fixed inset-0 flex items-center justify-center z-[201] pointer-events-none p-4">
+          <div className="fixed inset-0 flex items-center justify-center z-[201] pointer-events-none">
             <motion.div
               initial={{ scale: 0.5, opacity: 0, y: 100, rotateX: -15 }}
               animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
@@ -53,22 +53,18 @@ export const ColorPickerDialog = ({
                 stiffness: 300,
                 duration: 0.5
               }}
-              className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-2xl max-w-lg w-full min-h-[20rem] pointer-events-auto border-4 border-uno-purple relative overflow-hidden flex items-center justify-center"
+              className="bg-uno-purple rounded-3xl shadow-2xl max-w-lg w-full min-h-[20rem] pointer-events-auto border-4 border-white/20 relative overflow-hidden flex items-center justify-center p-10"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Decorative background elements */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-uno-purple opacity-10 rounded-full -mr-20 -mt-20" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-uno-blue opacity-10 rounded-full -ml-16 -mb-16" />
 
               {/* Content */}
-              <div className="relative z-10 flex flex-col items-center w-full gap-8 py-6">
-                <p></p>
+              <div className="relative z-10 flex flex-col items-center w-full">
                 {/* Title */}
                 <motion.h2
                   initial={{ y: -20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="text-4xl font-black my-6 text-center bg-gradient-to-r from-uno-purple to-uno-blue bg-clip-text text-transparent drop-shadow-lg"
+                  className="text-5xl font-black text-center mb-6 text-white drop-shadow-lg"
                 >
                   {message}
                 </motion.h2>
@@ -107,8 +103,6 @@ export const ColorPickerDialog = ({
                     );
                   })}
                 </motion.div>
-
-                <p></p>
               </div>
             </motion.div>
           </div>
