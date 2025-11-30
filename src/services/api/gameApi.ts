@@ -18,7 +18,7 @@ export interface DrawCardResponse {
 const API_BASE_URL = 'http://localhost:5165/api';
 
 export const gameApi = {
-  startGame: async (): Promise<GameData> => {
+  startGame: async (playerCount: number = 4): Promise<GameData> => {
     const response = await fetch(`${API_BASE_URL}/Game/start`, {
       method: 'POST',
       headers: {
@@ -26,6 +26,7 @@ export const gameApi = {
       },
       body: JSON.stringify({
         playerName: 'you',
+        playerCount: playerCount,
       }),
     });
 
