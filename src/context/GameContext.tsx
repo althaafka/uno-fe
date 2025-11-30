@@ -23,9 +23,16 @@ interface ColorPickerInfo {
   selectedColor?: number;
 }
 
+interface GameConfig {
+  playerCount: number;
+  playerName: string;
+  initialCardCount: number;
+}
+
 interface GameContextValue {
   gameId: string | null;
   gameState: GameState | null;
+  gameConfig: GameConfig | null;
   isLoading: boolean;
   error: string | null;
   isAnimating: boolean;
@@ -37,6 +44,7 @@ interface GameContextValue {
   playCard: (cardId: string) => Promise<void>;
   drawCard: () => Promise<void>;
   resetGame: () => void;
+  restartGame: () => Promise<void>;
   onAnimationComplete: () => void;
   onColorSelect: (color: number) => Promise<void>;
   onUnoCall: () => void;
@@ -52,6 +60,7 @@ interface GameProviderProps {
 
 export const GameProvider = ({ children }: GameProviderProps) => {
   const [gameId, setGameId] = useState<string | null>(null);
+  const [gameConfig, setGameConfig] = useState<GameConfig | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [colorPicker, setColorPicker] = useState<ColorPickerInfo>({
@@ -117,6 +126,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       const data: GameData = await gameApi.startGame(playerCount, playerName, initialCardCount);
       console.log('Game started successfully:', data);
       setGameId(data.gameId);
+      setGameConfig({ playerCount, playerName, initialCardCount });
       setInitialGameState(data.gameState);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
@@ -388,6 +398,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     }
 
     setGameId(null);
+    setGameConfig(null);
     setInitialGameState(null as unknown as GameState);
     setError(null);
     clearGameOver();
@@ -401,6 +412,33 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       selectedColor: undefined,
     });
   }, [setInitialGameState, clearGameOver]);
+
+  const restartGame = useCallback(async () => {
+    if (!gameConfig) {
+      throw new Error('No game configuration found');
+    }
+
+    // Reset the current game state
+    if (unoTimerRef.current) {
+      clearTimeout(unoTimerRef.current);
+      unoTimerRef.current = null;
+    }
+
+    setInitialGameState(null as unknown as GameState);
+    clearGameOver();
+    setHasCalledUno(false);
+    setIsWaitingForUno(false);
+    pendingCardRef.current = null;
+    setColorPicker({
+      isOpen: false,
+      cardId: null,
+      isInteractive: false,
+      selectedColor: undefined,
+    });
+
+    // Start a new game with the same configuration
+    await startGame(gameConfig.playerCount, gameConfig.playerName, gameConfig.initialCardCount);
+  }, [gameConfig, startGame, setInitialGameState, clearGameOver]);
 
   const setColorPickerTest = useCallback((isInteractive: boolean) => {
     setColorPicker({
@@ -426,6 +464,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   const value: GameContextValue = {
     gameId,
     gameState,
+    gameConfig,
     isLoading,
     error,
     isAnimating,
@@ -437,6 +476,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     playCard,
     drawCard,
     resetGame,
+    restartGame,
     onAnimationComplete,
     onColorSelect,
     onUnoCall,

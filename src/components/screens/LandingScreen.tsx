@@ -37,7 +37,7 @@ export const LandingScreen = ({ onGameStart }: LandingScreenProps) => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/5 to-transparent pointer-events-none" />
 
       {/* Settings button - Top Right */}
-      <div className="absolute top-8 right-8 z-40">
+      <div className="absolute top-4 right-4 z-40">
         <button
           onClick={() => setShowSettings(true)}
           className="group h-12 w-12 flex justify-center relative bg-gradient-to-b from-uno-purple to-uno-dark-purple rounded-xl font-black text-lg text-white shadow-[0_4px_0_#382f50] active:shadow-[0_2px_0_#382f50] active:translate-y-1 transition-all duration-150 hover:brightness-130 brightness-120"

@@ -15,26 +15,28 @@ interface GameBoardProps {
 }
 
 export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
-  const { 
-    gameState, 
-    isLoading, 
-    error, 
-    playCard, 
-    drawCard, 
-    isAnimating, 
-    animatingCard, 
-    onAnimationComplete, 
-    gameOver, 
-    colorPicker, 
-    onColorSelect, 
-    onUnoCall, 
-    resetGame, 
-    setGameOverTest, 
+  const {
+    gameState,
+    isLoading,
+    error,
+    playCard,
+    drawCard,
+    isAnimating,
+    animatingCard,
+    onAnimationComplete,
+    gameOver,
+    colorPicker,
+    onColorSelect,
+    onUnoCall,
+    resetGame,
+    restartGame,
+    setGameOverTest,
     setColorPickerTest,
     unoEvent
   } = useGame();
-  
+
   const [testAnimatingCard, setTestAnimatingCard] = useState<AnimatingCard | null>(null);
+  const [showMenu, setShowMenu] = useState<boolean>(false);
 
   const handleCardClick = async (cardId: string) => {
     if (isAnimating) return;
@@ -97,6 +99,15 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
   const handleBackToLandingClick = () => {
     resetGame();
     onBackToLanding();
+  };
+
+  const handleRestartGame = async () => {
+    setShowMenu(false);
+    try {
+      await restartGame();
+    } catch (err) {
+      console.error('Failed to restart game:', err);
+    }
   };
 
   const currentAnimatingCard = animatingCard || testAnimatingCard;
@@ -174,6 +185,44 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
       animatingCard={currentAnimatingCard}
       onAnimationComplete={testAnimatingCard ? handleTestAnimationComplete : onAnimationComplete}
     /> */}
+
+    {/* Menu Button - Top Right */}
+    <div className="absolute top-4 right-4 z-40">
+      <button
+        onClick={() => setShowMenu(true)}
+        className="group h-12 w-12 flex justify-center relative bg-gradient-to-b from-uno-purple to-uno-dark-purple rounded-xl font-black text-lg text-white shadow-[0_4px_0_#382f50] active:shadow-[0_2px_0_#382f50] active:translate-y-1 transition-all duration-150 hover:brightness-130 brightness-120"
+      >
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </div>
+      </button>
+    </div>
+
+    {/* Menu Dialog */}
+    <GameDialog
+      isOpen={showMenu}
+      title="MENU"
+      onClose={() => setShowMenu(false)}
+      buttons={[
+        {
+          text: 'Restart Game',
+          onClick: handleRestartGame,
+          variant: 'primary',
+        },
+        {
+          text: 'Back to Menu',
+          onClick: () => {
+            setShowMenu(false);
+            handleBackToLandingClick();
+          },
+          variant: 'secondary',
+        },
+      ]}
+    />
 
     {/* Game Over Dialog */}
     <GameDialog
