@@ -217,10 +217,10 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
       />
     )} */}
 
-    <div className="absolute rounded-b-4xl top-0 left-1/2 -translate-x-1/2 bg-uno-dark-purple opacity-50 h-[170px] w-[800px]"></div>
-    <div className="absolute rounded-t-4xl bottom-0 left-1/2 -translate-x-1/2 bg-uno-dark-purple opacity-50 h-[170px] w-[800px]"></div>
-    <div className="absolute rounded-r-4xl left-0 top-1/2 -translate-y-1/2 bg-uno-dark-purple opacity-50 h-[580px] w-[170px]"></div>
-    <div className="absolute rounded-l-4xl right-0 top-1/2 -translate-y-1/2 bg-uno-dark-purple opacity-50 h-[580px] w-[170px]"></div>
+    <div className="absolute rounded-b-4xl top-0 left-1/2 -translate-x-1/2 bg-uno-dark-purple h-[170px] w-[800px]"></div>
+    <div className="absolute rounded-t-4xl bottom-0 left-1/2 -translate-x-1/2 bg-uno-dark-purple h-[170px] w-[800px]"></div>
+    <div className="absolute rounded-r-4xl left-0 top-1/2 -translate-y-1/2 bg-uno-dark-purple h-[580px] w-[170px]"></div>
+    <div className="absolute rounded-l-4xl right-0 top-1/2 -translate-y-1/2 bg-uno-dark-purple h-[580px] w-[170px]"></div>
 
 
     {/* Player Top*/}
@@ -292,7 +292,7 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
     </div>
 
     {/*Center Area*/}
-    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-10">
+    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-14">
       {/*Deck*/}
       <div className="flex flex-col items-center gap-2">
         <div
@@ -303,18 +303,18 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
             : "Wait for your turn"}
         >
           <div className="absolute top-1 left-1 pointer-events-none">
-            <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.2}/>
+            <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.4}/>
           </div>
           <div className="absolute top-2 left-2 pointer-events-none">
-            <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.2}/>
+            <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.4}/>
           </div>
-            <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.2}/>
+            <Card card={{ id: "", color: 0, value: 0 }} isFaceDown scale={1.4}/>
           </div>
       </div>
 
       {/* Discard pile */}
-      <div>
-        <Card card={gameState.topCard} scale={1.2}/>
+      <div >
+        <Card card={gameState.topCard} scale={1.4}/>
       </div>
 
       {/*Game Info*/}

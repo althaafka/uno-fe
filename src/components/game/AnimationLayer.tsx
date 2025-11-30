@@ -120,7 +120,7 @@ export const AnimationLayer = ({ animatingCard, onAnimationComplete }: Animation
       rotation: getRotationForPosition(animatingCard.startPosition),
     };
     endPos = getDiscardPosition();
-    targetScale = 1.2;
+    targetScale = 1.3;
   } else {
     startPos = getDeckPosition();
 
