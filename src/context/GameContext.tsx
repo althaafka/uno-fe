@@ -33,7 +33,7 @@ interface GameContextValue {
   gameOver: GameOverInfo | null;
   colorPicker: ColorPickerInfo;
   unoEvent: {playerId: string} | null;
-  startGame: () => Promise<void>;
+  startGame: (playerCount?: number) => Promise<void>;
   playCard: (cardId: string) => Promise<void>;
   drawCard: () => Promise<void>;
   resetGame: () => void;
@@ -109,12 +109,12 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     }
   }, [colorChoice, gameState, clearColorChoice]);
 
-  const startGame = useCallback(async () => {
+  const startGame = useCallback(async (playerCount: number = 4) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const data: GameData = await gameApi.startGame();
+      const data: GameData = await gameApi.startGame(playerCount);
       console.log('Game started successfully:', data);
       setGameId(data.gameId);
       setInitialGameState(data.gameState);

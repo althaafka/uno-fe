@@ -14,9 +14,9 @@ export const GameInfo = ({direction, currentColor, onUnoClick}: GameInfoProps) =
   };
 
   const getDirectionStyle = () => {
-    return direction === 0 
+    return direction === 1 
       ? "rotate-0 text-orange-400"
-      : "rotate-180 text-violet-400";
+      : "scale-x-[-1] text-violet-400";
   };
 
   return (

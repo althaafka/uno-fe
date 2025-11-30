@@ -224,7 +224,7 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
 
 
     {/* Player Top*/}
-    <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-start gap-6">
+    {player3 && <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-start gap-6">
       <PlayerAvatar
         name={player3.name}
         cardCount={player3.cardCount}
@@ -237,10 +237,10 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
         playerPosition='top'
         hiddenCardIndex={getHiddenCardIndex(player3.id)}
       />
-    </div>
+    </div>}
 
     {/* Player Right*/}
-    <div className="absolute right-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
+    {player4 && <div className="absolute right-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
       <PlayerAvatar
         name={player4.name}
         cardCount={player4.cardCount}
@@ -254,10 +254,10 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
         playerPosition='right'
         hiddenCardIndex={getHiddenCardIndex(player4.id)}
       />
-    </div>
+    </div>}
 
     {/* Player Left*/}
-    <div className="absolute left-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
+    {player2 && <div className="absolute left-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
       <CardStack
         cardCount={player2.cardCount}
         overlapOffset={24}
@@ -271,7 +271,7 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
         isCurrentPlayer={gameState.currentPlayerId === player2.id}
         showUnoBalloon={unoEvent?.playerId == player2.id}
       />
-    </div>
+    </div>}
 
     {/*Human Player*/}
     <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex  items-start gap-6">

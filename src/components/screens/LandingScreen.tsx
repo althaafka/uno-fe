@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useGame } from '../../context/GameContext';
+import { Card } from '../game/Card'; // Import the Card component
 
 interface LandingScreenProps {
   onGameStart?: () => void;
@@ -7,102 +8,111 @@ interface LandingScreenProps {
 
 export const LandingScreen = ({ onGameStart }: LandingScreenProps) => {
   const { isLoading, error, startGame } = useGame();
+  const [playerCount, setPlayerCount] = useState<number>(4);
 
   const handleStartGame = useCallback(async () => {
     try {
-      await startGame();
+      await startGame(playerCount);
       onGameStart?.();
     } catch {
-
+      // Error is handled by context state
     }
-  }, [startGame, onGameStart]);
+  }, [startGame, onGameStart, playerCount]);
 
   return (
-    <div className="w-screen h-screen bg-gradient-to-br from-uno-purple via-slate-900 to-uno-blue overflow-hidden relative flex flex-col items-center justify-center">
-      {/* Decorative circles */}
-      <div className="absolute top-20 left-20 w-64 h-64 bg-uno-red/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-20 w-80 h-80 bg-uno-yellow/20 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/4 w-48 h-48 bg-uno-green/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/3 right-1/3 w-56 h-56 bg-uno-blue/20 rounded-full blur-3xl" />
+    <div className="w-screen h-screen bg-uno-purple overflow-hidden relative flex flex-col items-center justify-center">
+      
+      {/* Background Radial Gradient for depth (matches board feel) */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/5 to-transparent pointer-events-none" />
 
-      {/* Floating cards decoration */}
-      <div className="absolute top-16 right-32 rotate-12 opacity-30">
-        <div className="w-16 h-24 bg-uno-red rounded-lg shadow-lg" />
-      </div>
-      <div className="absolute bottom-24 left-24 -rotate-12 opacity-30">
-        <div className="w-16 h-24 bg-uno-blue rounded-lg shadow-lg" />
-      </div>
-      <div className="absolute top-1/3 left-16 rotate-6 opacity-30">
-        <div className="w-16 h-24 bg-uno-yellow rounded-lg shadow-lg" />
-      </div>
-      <div className="absolute bottom-1/4 right-24 -rotate-6 opacity-30">
-        <div className="w-16 h-24 bg-uno-green rounded-lg shadow-lg" />
-      </div>
+      {/* Main content container */}
+      <div className="relative z-10 flex flex-col items-center justify-center w-full h-full gap-16">
+        
+        {/* Logo and Cards Group */}
+        <div className="relative flex flex-col items-center">
+          
+          {/* 5 Face-Down Cards Fan */}
+          <div className="relative h-30 w-full flex justify-center items-center">
+            {/* Card 1 */}
+            <div className="absolute transform -translate-x-32 translate-y-4 -rotate-12 hover:-translate-y-2 transition-transform duration-300">
+               <Card card={{ id: "deck-1", color: 3, value: 4 }} isFaceDown scale={1.2} isClickable={false}/>
+            </div>
+            {/* Card 2 */}
+            <div className="absolute transform -translate-x-16 -translate-y-2 -rotate-6 hover:-translate-y-6 transition-transform duration-300 z-10">
+               <Card card={{ id: "deck-2", color: 2, value: 9 }} isFaceDown scale={1.2} />
+            </div>
+            {/* Card 3 (Center) */}
+            <div className="absolute transform -translate-y-6 z-20 hover:-translate-y-10 transition-transform duration-300">
+               <Card card={{ id: "deck-3", color: 0, value: 0 }} isFaceDown scale={1.2} />
+            </div>
+            {/* Card 4 */}
+            <div className="absolute transform translate-x-16 -translate-y-2 rotate-6 hover:-translate-y-6 transition-transform duration-300 z-10">
+               <Card card={{ id: "deck-4", color: 1, value: 11 }} isFaceDown scale={1.2} />
+            </div>
+            {/* Card 5 */}
+            <div className="absolute transform translate-x-32 translate-y-4 rotate-12 hover:-translate-y-2 transition-transform duration-300">
+               <Card card={{ id: "deck-5", color: 0, value: 12 }} isFaceDown scale={1.2} />
+            </div>
+          </div>
 
-      {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center gap-12">
-        {/* Title */}
-        <div className="text-center">
-          <h1 className="text-8xl font-black tracking-tight mb-4">
-            <span className="text-uno-red">U</span>
-            <span className="text-uno-yellow">N</span>
-            <span className="text-uno-green">O</span>
+          {/* Big UNO Text */}
+          <h1 className="text-[10rem] leading-none font-black tracking-tighter drop-shadow-2xl z-30 transform -rotate-6">
+            <span className="text-uno-red drop-shadow-[0_8px_0_rgba(0,0,0,0.3)]" style={{ textShadow: '6px 6px 0px neutral-800' }}>U</span>
+            <span className="text-uno-yellow drop-shadow-[0_8px_0_rgba(0,0,0,0.3)]" style={{ textShadow: '6px 6px 0px neutral-800' }}>N</span>
+            <span className="text-uno-green drop-shadow-[0_8px_0_rgba(0,0,0,0.3)]" style={{ textShadow: '6px 6px 0px neutral-800' }}>O</span>
+            <span className="text-uno-blue text-9xl align-top ml-2 animate-bounce drop-shadow-[0_8px_0_rgba(0,0,0,0.3)]" style={{ textShadow: '5px 5px 0px neutral-800' }}>!</span>
           </h1>
-          <p className="text-2xl text-white/80 font-light tracking-widest">
-            CARD GAME
+          
+          <p className="text-2xl text-white/90 font-bold tracking-[0.5em] mt-4 uppercase text-shadow-sm">
+            The Classic Card Game
           </p>
+        </div>
+
+        {/* Player Count Selection */}
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-white/90 font-bold text-lg">Select Number of Players</p>
+          <div className="flex gap-4">
+            {[2, 3, 4].map((count) => (
+              <button
+                key={count}
+                onClick={() => setPlayerCount(count)}
+                className={`px-8 py-4 rounded-lg font-bold text-xl transition-all duration-200 ${
+                  playerCount === count
+                    ? 'bg-uno-yellow text-uno-purple shadow-lg scale-110'
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+              >
+                {count}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Start button */}
         <button
           onClick={handleStartGame}
           disabled={isLoading}
-          className="w-40 h-10 group relative px-10 py-4 bg-gradient-to-r from-uno-red to-uno-yellow rounded-2xl font-bold text-xl text-white shadow-lg shadow-uno-red/30 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-uno-yellow/40 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+          className="group relative px-12 py-5 bg-gradient-to-b from-uno-yellow to-orange-500 rounded-full font-black text-2xl text-uno-purple shadow-[0_6px_0_rgb(180,83,9)] active:shadow-[0_2px_0_rgb(180,83,9)] active:translate-y-1 transition-all duration-150 hover:brightness-110 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
         >
-          <div className={`flex items-center justify-center ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
+          <div className={`flex items-center justify-center gap-3 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
+            <span>START</span>
             <svg
-              className="w-6 h-6 shrink-0 transition-transform duration-300 group-hover:translate-x-1"
+              className="w-8 h-8 transition-transform duration-300 group-hover:translate-x-2"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              strokeWidth={3}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
-            <span style={{ marginLeft: '12px' }}>Start Game</span>
           </div>
 
           {/* Loading spinner */}
           {isLoading && (
             <span className="absolute inset-0 flex items-center justify-center">
-              <svg
-                className="w-6 h-6 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
+              <svg className="w-8 h-8 animate-spin text-uno-purple" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
             </span>
           )}
@@ -110,14 +120,14 @@ export const LandingScreen = ({ onGameStart }: LandingScreenProps) => {
 
         {/* Error message */}
         {error && (
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg px-6 py-3 text-red-200">
-            {error}
+          <div className="absolute bottom-12 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg font-bold animate-bounce">
+            ⚠️ {error}
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="absolute bottom-8 text-white/40 text-sm">
+      {/* Footer Version/Info */}
+      <div className="absolute bottom-4 text-white/60 text-l font-mono">
         Press Start to begin a new game
       </div>
     </div>
