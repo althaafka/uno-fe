@@ -7,7 +7,7 @@ import { AnimationTestPanel } from '../dev/AnimationTestPanel';
 import { GameDialog } from '../game/GameDialog';
 import { ColorPickerDialog } from '../game/ColorPickerDialog';
 import { useGame } from '../../context/GameContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { AnimatingCard } from '../../types/animation';
 
 interface GameBoardProps {
@@ -37,6 +37,12 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
 
   const [testAnimatingCard, setTestAnimatingCard] = useState<AnimatingCard | null>(null);
   const [showMenu, setShowMenu] = useState<boolean>(false);
+
+  useEffect(() => {
+    return () => {
+      resetGame();
+    };
+  }, [resetGame]);
 
   const handleCardClick = async (cardId: string) => {
     if (isAnimating) return;

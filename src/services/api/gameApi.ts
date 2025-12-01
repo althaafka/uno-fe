@@ -64,7 +64,7 @@ export const gameApi = {
 
     if (!response.ok) {
       console.log("Error:", result)
-      throw new Error(`Failed to play card: ${response.status}`);
+      // throw new Error(`Failed to play card: ${response.status}`);
     }
 
     return result.data;
@@ -87,11 +87,10 @@ export const gameApi = {
       throw new Error(result?.message || `Failed to draw card: ${response.status}`);
     }
 
-    if (!result.success) {
-      throw new Error(result.message || 'Failed to draw card');
+    if (!result?.success) {
+      // throw new Error(result.message || 'Failed to draw card');
     }
 
-    console.log("Draw card response:", result);
     return result.data;
   },
 };

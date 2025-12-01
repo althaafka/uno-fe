@@ -72,6 +72,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   const [hasCalledUno, setHasCalledUno] = useState(false);
   const [isWaitingForUno, setIsWaitingForUno] = useState(false);
   const unoTimerRef = useRef<number | null>(null);
+  const colorPickerTimerRef = useRef<number | null>(null);
   const pendingCardRef = useRef<{cardId: string, chosenColor?: number} | null>(null);
 
   const {
@@ -87,6 +88,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     clearGameOver,
     clearColorChoice,
     setGameOverTest,
+    clearAllTimers,
   } = useAnimationQueue();
 
   useEffect(() => {
@@ -101,7 +103,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
           selectedColor: colorChoice.chosenColor,
         });
 
-        const timer = setTimeout(() => {
+        colorPickerTimerRef.current = window.setTimeout(() => {
           setColorPicker({
             isOpen: false,
             cardId: null,
@@ -109,9 +111,15 @@ export const GameProvider = ({ children }: GameProviderProps) => {
             selectedColor: undefined,
           });
           clearColorChoice();
+          colorPickerTimerRef.current = null;
         }, 1500);
 
-        return () => clearTimeout(timer);
+        return () => {
+          if (colorPickerTimerRef.current) {
+            clearTimeout(colorPickerTimerRef.current);
+            colorPickerTimerRef.current = null;
+          }
+        };
       } else {
         clearColorChoice();
       }
@@ -168,7 +176,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
 
     gameApi.playCard(gameId, humanPlayer.id, pending.cardId, pending.chosenColor, true)
       .then(response => {
-        if (response.success) {
+        if (response?.success) {
           console.log('Play card with UNO call response:', response);
           startAnimationSequence(response.events, response.gameState, gameState);
         } else {
@@ -240,7 +248,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
 
         gameApi.playCard(gameId, humanPlayer.id, cardId, undefined, calledUno)
           .then(response => {
-            if (response.success) {
+            if (response?.success) {
               console.log('Play card response:', response, `calledUno: ${calledUno}`);
               startAnimationSequence(response.events, response.gameState, gameState);
             } else {
@@ -250,7 +258,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
           })
           .catch(err => {
             const errorMessage = err instanceof Error ? err.message : 'Failed to play card';
-            setError(errorMessage);
+            // setError(errorMessage);
             console.error('Error playing card:', err);
           })
           .finally(() => {
@@ -265,7 +273,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
 
     try {
       const response = await gameApi.playCard(gameId, humanPlayer.id, cardId, undefined, false);
-      if (response.success) {
+      if (response?.success) {
         console.log('Play card response:', response);
         startAnimationSequence(response.events, response.gameState, gameState);
       } else {
@@ -319,7 +327,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
 
         gameApi.playCard(gameId, humanPlayer.id, currentCardId, color, calledUno)
           .then(response => {
-            if (response.success) {
+            if (response?.success) {
               console.log('Play card with color response:', response, `calledUno: ${calledUno}`);
               startAnimationSequence(response.events, response.gameState, gameState);
             } else {
@@ -344,7 +352,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
 
     try {
       const response = await gameApi.playCard(gameId, humanPlayer.id, currentCardId, color, false);
-      if (response.success) {
+      if (response?.success) {
         console.log('Play card with color response:', response);
         startAnimationSequence(response.events, response.gameState, gameState);
       } else {
@@ -383,7 +391,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       startAnimationSequence(response.events, response.gameState, gameState);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to draw card';
-      setError(errorMessage);
+      // setError(errorMessage);
       console.error('Error playing card:', err);
 
       setTimeout(() => setError(null), 3000);
@@ -392,11 +400,22 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   }, [gameId, gameState, isAnimating, startAnimationSequence]);
 
   const resetGame = useCallback(() => {
+    // Clear UNO timer
     if (unoTimerRef.current) {
       clearTimeout(unoTimerRef.current);
       unoTimerRef.current = null;
     }
 
+    // Clear color picker timer
+    if (colorPickerTimerRef.current) {
+      clearTimeout(colorPickerTimerRef.current);
+      colorPickerTimerRef.current = null;
+    }
+
+    // Clear all animation timers and queues
+    clearAllTimers();
+
+    // Reset game state
     setGameId(null);
     setGameConfig(null);
     setInitialGameState(null as unknown as GameState);
@@ -411,18 +430,23 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       isInteractive: false,
       selectedColor: undefined,
     });
-  }, [setInitialGameState, clearGameOver]);
+  }, [setInitialGameState, clearGameOver, clearAllTimers]);
 
   const restartGame = useCallback(async () => {
     if (!gameConfig) {
       throw new Error('No game configuration found');
     }
 
-    // Reset the current game state
     if (unoTimerRef.current) {
       clearTimeout(unoTimerRef.current);
       unoTimerRef.current = null;
     }
+    if (colorPickerTimerRef.current) {
+      clearTimeout(colorPickerTimerRef.current);
+      colorPickerTimerRef.current = null;
+    }
+
+    clearAllTimers();
 
     setInitialGameState(null as unknown as GameState);
     clearGameOver();
@@ -438,7 +462,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
 
     // Start a new game with the same configuration
     await startGame(gameConfig.playerCount, gameConfig.playerName, gameConfig.initialCardCount);
-  }, [gameConfig, startGame, setInitialGameState, clearGameOver]);
+  }, [gameConfig, startGame, setInitialGameState, clearGameOver, clearAllTimers]);
 
   const setColorPickerTest = useCallback((isInteractive: boolean) => {
     setColorPicker({

@@ -1,7 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useGame } from '../../context/GameContext';
 import { Card } from '../game/Card';
 import { GameDialog } from '../game/GameDialog';
+import { loadGameSettings, saveGameSettings } from '../../utils/gameSettings';
 
 interface LandingScreenProps {
   onGameStart?: () => void;
@@ -14,6 +15,21 @@ export const LandingScreen = ({ onGameStart }: LandingScreenProps) => {
   const [playerName, setPlayerName] = useState<string>('You');
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const MAX_NAME_LENGTH = 15;
+
+  useEffect(() => {
+    const savedSettings = loadGameSettings();
+    setPlayerCount(savedSettings.playerCount);
+    setPlayerName(savedSettings.playerName);
+    setInitialCardCount(savedSettings.initialCardCount);
+  }, []);
+
+  useEffect(() => {
+    saveGameSettings({
+      playerCount,
+      playerName,
+      initialCardCount,
+    });
+  }, [playerCount, playerName, initialCardCount]);
 
   const handlePlayerNameChange = (name: string) => {
     // Enforce max length

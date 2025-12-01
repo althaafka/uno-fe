@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Card, GameEvent, GameState } from '../types/game';
 import type { AnimatingCard, PlayerPosition } from '../types/animation';
 
@@ -47,6 +47,7 @@ interface UseAnimationQueueResult {
   clearColorChoice: () => void;
   clearUnoEvent: () => void;
   setGameOverTest: (winnerId: string) => void; // For testing purposes
+  clearAllTimers: () => void; // Cleanup function
 }
 
 export const useAnimationQueue = (): UseAnimationQueueResult => {
@@ -61,6 +62,31 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
   const pendingGameStateRef = useRef<GameState | null>(null);
   const currentEventRef = useRef<GameEvent | null>(null);
   const isSchedulingNextEventRef = useRef(false);
+  const timerIdsRef = useRef<number[]>([]);
+
+  const safeSetTimeout = useCallback((callback: () => void, delay: number): number => {
+    const id = window.setTimeout(callback, delay);
+    timerIdsRef.current.push(id);
+    return id;
+  }, []);
+
+  const clearAllTimers = useCallback(() => {
+    console.log('Clearing all animation timers:', timerIdsRef.current.length);
+    timerIdsRef.current.forEach(clearTimeout);
+    timerIdsRef.current = [];
+    eventQueueRef.current = [];
+    pendingGameStateRef.current = null;
+    currentEventRef.current = null;
+    isSchedulingNextEventRef.current = false;
+    setIsAnimating(false);
+    setAnimatingCard(null);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearAllTimers();
+    };
+  }, [clearAllTimers]);
 
   const getPlayerPosition = useCallback((playerId: string, players: GameState['players']): PlayerPosition => {
     const humanIndex = players.findIndex(p => p.isHuman);
@@ -227,7 +253,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
 
         if (!isSchedulingNextEventRef.current) {
           isSchedulingNextEventRef.current = true;
-          setTimeout(() => {
+          safeSetTimeout(() => {
             isSchedulingNextEventRef.current = false;
             processNextEvent();
           }, ANIMATION_DELAY);
@@ -247,7 +273,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
 
         if (!isSchedulingNextEventRef.current) {
           isSchedulingNextEventRef.current = true;
-          setTimeout(() => {
+          safeSetTimeout(() => {
             isSchedulingNextEventRef.current = false;
             processNextEvent();
           }, COLOR_PICKER_DELAY);
@@ -263,7 +289,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
 
         if (!isSchedulingNextEventRef.current) {
           isSchedulingNextEventRef.current = true;
-          setTimeout(() => {
+          safeSetTimeout(() => {
             setUnoEvent(null);
             isSchedulingNextEventRef.current = false;
             processNextEvent();
@@ -278,7 +304,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
 
         if (!isSchedulingNextEventRef.current) {
           isSchedulingNextEventRef.current = true;
-          setTimeout(() => {
+          safeSetTimeout(() => {
             isSchedulingNextEventRef.current = false;
             processNextEvent();
           }, ANIMATION_DELAY);
@@ -289,7 +315,7 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
 
       return currentState;
     });
-  }, [getCardForEvent, getPlayerPosition, applyEventToState]);
+  }, [getCardForEvent, getPlayerPosition, applyEventToState, safeSetTimeout]);
 
   const onAnimationComplete = useCallback(() => {
     const event = currentEventRef.current;
@@ -310,10 +336,10 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     currentEventRef.current = null;
 
     console.log('Next event in', ANIMATION_DELAY, 'ms');
-    setTimeout(() => {
+    safeSetTimeout(() => {
       processNextEvent();
     }, ANIMATION_DELAY);
-  }, [animatingCard, applyEventToState, processNextEvent]);
+  }, [animatingCard, applyEventToState, processNextEvent, safeSetTimeout]);
 
   const setInitialGameState = useCallback((state: GameState) => {
     setGameState(state);
@@ -403,5 +429,6 @@ export const useAnimationQueue = (): UseAnimationQueueResult => {
     clearColorChoice,
     clearUnoEvent,
     setGameOverTest,
+    clearAllTimers,
   };
 };
