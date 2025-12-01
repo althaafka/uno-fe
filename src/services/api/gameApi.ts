@@ -35,7 +35,8 @@ export const gameApi = {
       throw new Error(`Failed to start game: ${response.status}`);
     }
 
-    return response.json();
+    const result = await response.json();
+    return result.data;
   },
 
   playCard: async (gameId: string, playerId: string, cardId: string, chosenColor?: number, calledUno?: boolean): Promise<PlayCardResponse> => {
@@ -52,14 +53,21 @@ export const gameApi = {
       }),
     });
 
-    const data = await response.json();
+    // console.log("play card req:",{
+    //     playerId,
+    //     cardId,
+    //     chosenColor: chosenColor !== undefined ? chosenColor : null,
+    //     calledUno: calledUno ?? false,
+    //   })
+
+    const result = await response.json();
 
     if (!response.ok) {
-      console.log("Error:", data)
+      console.log("Error:", result)
       throw new Error(`Failed to play card: ${response.status}`);
     }
 
-    return data;
+    return result.data;
   },
 
   drawCard: async (gameId: string, playerId: string): Promise<DrawCardResponse> => {
@@ -73,19 +81,18 @@ export const gameApi = {
       }),
     });
 
+    const result = await response.json();
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || `Failed to draw card: ${response.status}`);
+      throw new Error(result?.message || `Failed to draw card: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log("Draw card response:", data);
-
-    if (!data.success) {
-      throw new Error(data.message || 'Failed to draw card');
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to draw card');
     }
 
-    return data;
+    console.log("Draw card response:", result);
+    return result.data;
   },
 };
 
