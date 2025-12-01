@@ -7,7 +7,7 @@ interface AnimationLayerProps {
   onAnimationComplete: () => void;
 }
 
-const ANIMATION_DURATION = 1; // seconds
+const ANIMATION_DURATION = 0.75; // seconds
 
 // Deck position
 const getDeckPosition = (): { x: number; y: number; rotation: number } => {

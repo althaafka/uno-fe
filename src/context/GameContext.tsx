@@ -112,7 +112,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
           });
           clearColorChoice();
           colorPickerTimerRef.current = null;
-        }, 1500);
+        }, 750);
 
         return () => {
           if (colorPickerTimerRef.current) {
@@ -343,7 +343,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
           .finally(() => {
             pendingCardRef.current = null;
           });
-      }, 1500);
+      }, 750);
 
       return;
     }
@@ -481,7 +481,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
           selectedColor: undefined,
         });
         console.log('Opponent finished choosing color (test)');
-      }, 3000);
+      }, 750);
     }
   }, []);
 

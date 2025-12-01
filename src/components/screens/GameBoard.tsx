@@ -7,6 +7,7 @@ import { AnimationTestPanel } from '../dev/AnimationTestPanel';
 import { GameDialog } from '../game/GameDialog';
 import { ColorPickerDialog } from '../game/ColorPickerDialog';
 import { useGame } from '../../context/GameContext';
+import { useGameSound } from '../../hooks/useGameSound';
 import { useState, useEffect } from 'react';
 import type { AnimatingCard } from '../../types/animation';
 
@@ -35,14 +36,40 @@ export const GameBoard = ({ onBackToLanding }: GameBoardProps) => {
     unoEvent
   } = useGame();
 
+  const { playCardFlip, playWin, playLose, playUno, stopBacksound } = useGameSound();
+
   const [testAnimatingCard, setTestAnimatingCard] = useState<AnimatingCard | null>(null);
   const [showMenu, setShowMenu] = useState<boolean>(false);
 
   useEffect(() => {
     return () => {
       resetGame();
+      stopBacksound();
     };
-  }, [resetGame]);
+  }, []);
+
+  useEffect(() => {
+    if (animatingCard) {
+      playCardFlip();
+    }
+  }, [animatingCard, playCardFlip]);
+
+  useEffect(() => {
+    if (unoEvent) {
+      playUno();
+    }
+  }, [unoEvent, playUno]);
+
+  useEffect(() => {
+    if (gameOver?.isGameOver && gameState) {
+      const humanPlayer = gameState.players.find(p => p.isHuman);
+      if (humanPlayer?.id === gameOver.winnerId) {
+        playWin();
+      } else {
+        playLose();
+      }
+    }
+  }, [gameOver, gameState, playWin, playLose]);
 
   const handleCardClick = async (cardId: string) => {
     if (isAnimating) return;

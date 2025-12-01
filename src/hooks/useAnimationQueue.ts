@@ -2,8 +2,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Card, GameEvent, GameState } from '../types/game';
 import type { AnimatingCard, PlayerPosition } from '../types/animation';
 
-const ANIMATION_DELAY = 1000;
-const COLOR_PICKER_DELAY = 2000; // Delay for color picker
+const ANIMATION_DELAY = 750;
+const COLOR_PICKER_DELAY = 750; // Delay for color picker
 
 const getEventTypeName = (type: number): string => {
   switch (type) {
